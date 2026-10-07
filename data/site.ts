@@ -101,7 +101,7 @@ export const skillGroups = [
   { label: "Currently learning", state: "In progress", items: ["AI / ML", "Cloud Systems"] },
 ] as const;
 
-type SkillName = (typeof skillGroups)[number]["items"][number];
+export type SkillName = (typeof skillGroups)[number]["items"][number];
 
 // Keys must be skill names and values completed project titles, so a typo fails type-checking instead of silently hiding the link.
 export const skillProjectLinks: Partial<Record<SkillName, readonly Extract<Project, { status: "Completed" }>["title"][]>> = {

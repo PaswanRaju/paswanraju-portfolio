@@ -122,6 +122,7 @@ export default function SkillsCloud() {
       velocity.current.y = dx * 0.0008;
       velocity.current.x = dy * 0.0008;
     };
+    // pointercancel fires when a touch turns into a vertical page scroll (touch-action: pan-y in CSS).
     const onPointerUp = () => { pointer.current.dragging = false; };
 
     cloud.addEventListener("pointerenter", onPointerEnter);
@@ -129,6 +130,7 @@ export default function SkillsCloud() {
     cloud.addEventListener("pointerdown", onPointerDown);
     cloud.addEventListener("pointermove", onPointerMove);
     cloud.addEventListener("pointerup", onPointerUp);
+    cloud.addEventListener("pointercancel", onPointerUp);
     visibility.observe(cloud);
     resize.observe(cloud);
     requestRender();
@@ -141,23 +143,24 @@ export default function SkillsCloud() {
       cloud.removeEventListener("pointerdown", onPointerDown);
       cloud.removeEventListener("pointermove", onPointerMove);
       cloud.removeEventListener("pointerup", onPointerUp);
+      cloud.removeEventListener("pointercancel", onPointerUp);
     };
   }, [points, reduced]);
 
   return (
     <div className="skills-cloud-wrap">
-      <div className="skills-cloud" ref={cloudRef} aria-label="Interactive technology icon cloud">
+      <div className="skills-cloud" ref={cloudRef} aria-hidden="true">
         <span className="skills-cloud-aura" aria-hidden="true" />
         <span className="skills-cloud-ring skills-cloud-ring-one" aria-hidden="true" />
         <span className="skills-cloud-ring skills-cloud-ring-two" aria-hidden="true" />
         <div className="skills-cloud-items">
           {points.map(({ technology }, index) => {
             const Icon = getTechIcon(technology);
-            return <span className="skills-cloud-item" key={technology} ref={(element) => { itemsRef.current[index] = element; }} title={technology} aria-label={technology}><Icon size={20} strokeWidth={1.4} aria-hidden="true" /><b>{technology}</b></span>;
+            return <span className="skills-cloud-item" key={technology} ref={(element) => { itemsRef.current[index] = element; }} title={technology}><Icon size={20} strokeWidth={1.4} aria-hidden="true" /><b>{technology}</b></span>;
           })}
         </div>
       </div>
-      <small className="skills-cloud-hint">DRAG TO ROTATE / HOVER TO SLOW</small>
+      <small className="skills-cloud-hint" aria-hidden="true">DRAG TO ROTATE / HOVER TO SLOW</small>
     </div>
   );
 }

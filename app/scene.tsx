@@ -79,7 +79,7 @@ export default function HeroScene() {
   }, [reduced]);
 
   return (
-    <div ref={sceneRef} className="scene-shell" aria-label="Abstract orbital engineering system">
+    <div ref={sceneRef} className="scene-shell" aria-hidden="true">
       <div className="orbit-aura" aria-hidden="true" />
       <div className="orbit-system" aria-hidden="true">
         <span className="orbit-ring orbit-ring-outer" />

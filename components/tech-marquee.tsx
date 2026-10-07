@@ -33,7 +33,7 @@ export default function TechMarquee() {
   const items = [...technologies, ...technologies];
 
   return (
-    <div className="tech-marquee" aria-label="Technologies used and currently learning">
+    <div className="tech-marquee" aria-hidden="true">
       <div className="tech-marquee-edge tech-marquee-edge-left" aria-hidden="true" />
       {/* Animated in CSS (see .tech-marquee-track) so it runs on the compositor instead of a per-frame JS loop. */}
       <div className="tech-marquee-track">
