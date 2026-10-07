@@ -3,7 +3,7 @@ export const personalInfo = {
   shortName: "Raju Paswan",
   role: "Computer Science Student • Software Engineer • Builder",
   intro: "Computer Science student at UTA exploring software engineering, AI, cloud systems, full-stack development, and systems programming.",
-  email: "paswanrajukumar890@gmail.com",
+  email: "rxp2022@mavs.uta.edu",
 } as const;
 
 export const siteLinks = {
@@ -86,24 +86,30 @@ export const leetcodeProfile: LeetCodeProfile = {
 
 export type Project = (typeof projects)[number];
 export const projects = [
-  { number: "01", title: "3D Tic Tac Toe", status: "Completed", tone: "violet", visual: "game", description: "A futuristic browser-based Tic Tac Toe experience featuring a 3D-inspired interface, animated interactions, score tracking, responsive design, and polished gameplay.", tags: ["HTML", "CSS", "JavaScript"], github: "https://github.com/PaswanRaju/3d-tic-tac-toe", liveDemo: "", problem: "Create a polished, approachable browser game without a heavy runtime.", approach: "Built the game interface around responsive layouts, animated state changes, and score tracking.", decisions: "Kept the implementation lightweight with browser-native HTML, CSS, and JavaScript.", outcome: "Completed browser project; no verified live demo is listed." },
+  { number: "01", title: "3D Tic Tac Toe", status: "Completed", tone: "violet", visual: "game", description: "A futuristic browser-based Tic Tac Toe experience featuring a 3D-inspired interface, animated interactions, score tracking, responsive design, and polished gameplay.", tags: ["HTML", "CSS", "JavaScript"], github: "https://github.com/PaswanRaju/3d-tic-tac-toe", liveDemo: "https://paswanraju.github.io/3d-tic-tac-toe/", problem: "Create a polished, approachable browser game without a heavy runtime.", approach: "Built the game interface around responsive layouts, animated state changes, and score tracking.", decisions: "Kept the implementation lightweight with browser-native HTML, CSS, and JavaScript.", outcome: "Completed and deployed as a playable browser game on GitHub Pages." },
   { number: "02", title: "OperatorLoop", status: "Completed", tone: "teal", visual: "data", description: "Human-in-the-loop manufacturing AI decision support: sensor processing, anomaly classification, guidance retrieval, safety validation, and operator feedback logging.", tags: ["Python", "Pandas", "scikit-learn", "Matplotlib", "TF-IDF", "Git"], github: "https://github.com/PaswanRaju/OperatorLoop-Manufacturing-AI", liveDemo: "", problem: "Support manufacturing operators with explainable guidance around sensor anomalies.", approach: "Prioritized exact process-condition matching before TF-IDF similarity ranking. Evaluated retrieval and safety validation across 160 synthetic runs with 28 injected anomalies, and created vibration-monitoring visualizations.", decisions: "Focused on reproducible code, technical documentation, explicit safety validation, and operator feedback rather than opaque automation.", outcome: "Completed technical project evaluated across the documented synthetic runs." },
   { number: "03", title: "AArch64 Teaching Kernel Lab", status: "Completed", tone: "amber", visual: "kernel", description: "A bare-metal 64-bit ARM kernel image for Raspberry Pi 3/QEMU, explored through ELF inspection, QEMU/GDB boot validation, and AArch64 instruction-level debugging.", tags: ["C", "ARM Assembly", "QEMU", "GDB", "Make", "Git"], github: "", liveDemo: "", problem: "Understand boot flow, binary layout, and exception-level state on AArch64.", approach: "Inspected ELF sections and symbols with nm, objdump, and binary tools; validated boot flow in QEMU/GDB and stepped through instructions and registers.", decisions: "Used Make, shell scripts, and Git/GitHub for a reproducible build and debug workflow.", outcome: "Completed systems programming and low-level debugging lab." },
-  { number: "04", title: "MavRAG Course Assistant", status: "In progress / Planned", tone: "violet", visual: "rag", description: "A planned course assistant for PDF ingestion, grounded answers, source citations, and retrieval evaluation.", tags: ["Python", "FastAPI", "LangChain", "ChromaDB", "Docker", "AWS"], github: "", liveDemo: "", problem: "Make course materials easier to search while keeping answers grounded in source documents.", approach: "Planned architecture includes ingestion, embeddings, vector storage, retrieval, citations, REST APIs, semantic-search evaluation, caching, and latency/error logging.", decisions: "Prompt/version tracking and retrieval testing are planned alongside Docker deployment to AWS EC2/S3.", outcome: "In progress / planned; no completed implementation is being presented." },
-  { number: "05", title: "Cloud-Native Task Platform", status: "In progress / Planned", tone: "teal", visual: "cloud", description: "A planned task platform with a React frontend, Spring Boot API, relational persistence, authentication, caching, and cloud deployment.", tags: ["Java", "Spring Boot", "React", "MySQL", "Redis", "AWS", "Docker", "GitHub Actions"], github: "", liveDemo: "", problem: "Design a maintainable task workflow with a clear path from local development to cloud deployment.", approach: "Planned architecture covers JWT authentication, RBAC, validation, pagination, indexing, Redis caching, tests, and horizontal scaling.", decisions: "Docker, GitHub Actions, AWS RDS/EC2, and CloudWatch are planned as the delivery and operations foundation.", outcome: "In progress / planned; architecture remains a future build." },
+  { number: "04", title: "MavRAG Course Assistant", status: "In Progress", tone: "violet", visual: "rag", description: "A planned course assistant for PDF ingestion, grounded answers, source citations, and retrieval evaluation.", tags: ["Python", "FastAPI", "LangChain", "ChromaDB", "Docker", "AWS"], github: "", liveDemo: "", problem: "Make course materials easier to search while keeping answers grounded in source documents.", approach: "Planned architecture includes ingestion, embeddings, vector storage, retrieval, citations, REST APIs, semantic-search evaluation, caching, and latency/error logging.", decisions: "Prompt/version tracking and retrieval testing are planned alongside Docker deployment to AWS EC2/S3.", outcome: "In progress. The architecture above is the plan; the implementation is not finished yet." },
+  { number: "05", title: "Cloud-Native Task Platform", status: "In Progress", tone: "teal", visual: "cloud", description: "A planned task platform with a React frontend, Spring Boot API, relational persistence, authentication, caching, and cloud deployment.", tags: ["Java", "Spring Boot", "React", "MySQL", "Redis", "AWS", "Docker", "GitHub Actions"], github: "", liveDemo: "", problem: "Design a maintainable task workflow with a clear path from local development to cloud deployment.", approach: "Planned architecture covers JWT authentication, RBAC, validation, pagination, indexing, Redis caching, tests, and horizontal scaling.", decisions: "Docker, GitHub Actions, AWS RDS/EC2, and CloudWatch are planned as the delivery and operations foundation.", outcome: "In progress. The architecture above is the target design; the build is not finished yet." },
 ] as const;
 
 export const skillGroups = [
-  { label: "Languages", state: "Used / verified", items: ["Python", "Java", "JavaScript", "C", "SQL"] },
-  { label: "Databases", state: "Used / verified", items: ["PostgreSQL", "MySQL"] },
-  { label: "Tools / Systems", state: "Used / verified", items: ["Git", "Docker", "Linux", "GDB", "QEMU"] },
-  { label: "Web / Backend", state: "Used / verified", items: ["Spring Boot", "React", "Next.js"] },
+  { label: "Languages", state: "Hands-on", items: ["Python", "Java", "JavaScript", "C", "SQL"] },
+  { label: "Databases", state: "Hands-on", items: ["PostgreSQL", "MySQL"] },
+  { label: "Tools / Systems", state: "Hands-on", items: ["Git", "Docker", "Linux", "GDB", "QEMU"] },
+  { label: "Web / Backend", state: "Hands-on", items: ["Spring Boot", "React", "Next.js"] },
   { label: "Currently learning", state: "In progress", items: ["AI / ML", "Cloud Systems"] },
 ] as const;
 
-export const skillProjectLinks = {
-  Python: ["OperatorLoop", "MavRAG Course Assistant"],
-  "C / ARM": ["AArch64 Teaching Kernel Lab"],
+type SkillName = (typeof skillGroups)[number]["items"][number];
+
+// Keys must be skill names and values completed project titles, so a typo fails type-checking instead of silently hiding the link.
+export const skillProjectLinks: Partial<Record<SkillName, readonly Extract<Project, { status: "Completed" }>["title"][]>> = {
+  Python: ["OperatorLoop"],
   JavaScript: ["3D Tic Tac Toe"],
-  "FastAPI / React": ["MavRAG Course Assistant", "Cloud-Native Task Platform"],
-} as const;
+  C: ["AArch64 Teaching Kernel Lab"],
+  Git: ["OperatorLoop", "AArch64 Teaching Kernel Lab"],
+  GDB: ["AArch64 Teaching Kernel Lab"],
+  QEMU: ["AArch64 Teaching Kernel Lab"],
+  "AI / ML": ["OperatorLoop"],
+};
