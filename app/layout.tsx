@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { personalInfo } from "../data/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             name: "Raju Kumar Paswan",
             jobTitle: "Software Engineer",
             url: "https://paswanraju.com",
-            email: "paswanrajukumar890@gmail.com",
+            email: personalInfo.email,
             sameAs: ["https://github.com/PaswanRaju", "https://linkedin.com/in/paswanrajukumar"],
           }) }}
         />

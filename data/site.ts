@@ -3,7 +3,7 @@ export const personalInfo = {
   shortName: "Raju Paswan",
   role: "Computer Science Student • Software Engineer • Builder",
   intro: "Computer Science student at UTA exploring software engineering, AI, cloud systems, full-stack development, and systems programming.",
-  email: "rxp2022@mavs.uta.edu",
+  email: "paswanrajukumar890@gmail.com",
 } as const;
 
 export const siteLinks = {
