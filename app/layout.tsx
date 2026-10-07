@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://paswanraju.com"),
   title: "Raju Kumar Paswan | Software Engineer",
   description:
-    "Computer Science student and software engineer building systems, AI applications, cloud infrastructure, and interactive web experiences.",
+    "Computer Science student at UTA building software across systems, AI, and the web.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "Raju Kumar Paswan | Software Engineer",
-    description: "Computer Science student and software engineer building systems, AI applications, cloud infrastructure, and interactive web experiences.",
+    description: "Computer Science student at UTA building software across systems, AI, and the web.",
     url: "https://paswanraju.com",
     siteName: "Raju Kumar Paswan",
     type: "website",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "Raju Kumar Paswan | Software Engineer",
-    description: "Computer Science student and software engineer building systems, AI applications, cloud infrastructure, and interactive web experiences.",
+    description: "Computer Science student at UTA building software across systems, AI, and the web.",
   },
 };
 

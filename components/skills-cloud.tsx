@@ -3,7 +3,7 @@
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import { skillGroups } from "../data/site";
-import { getTechIcon } from "./tech-marquee";
+import { getTechIcon } from "./tech-icons";
 
 type CloudPoint = {
   technology: string;

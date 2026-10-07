@@ -6,8 +6,6 @@ import { useEffect, useRef } from "react";
 const orbitNodes = ["node-a", "node-b", "node-c"];
 const spacePoints = ["point-a", "point-b", "point-c", "point-d", "point-e", "point-f"];
 const neuralLinks = ["link-a", "link-b", "link-c", "link-d"];
-const monoliths = ["monolith-a", "monolith-b", "monolith-c"];
-const debris = ["debris-a", "debris-b", "debris-c", "debris-d"];
 
 export default function HeroScene() {
   const reduced = useReducedMotion();
@@ -90,10 +88,8 @@ export default function HeroScene() {
         {orbitNodes.map((node) => <span className={`orbit-node ${node}`} key={node} />)}
         {spacePoints.map((point) => <span className={`space-point ${point}`} key={point} />)}
         {neuralLinks.map((link) => <span className={`neural-link ${link}`} key={link} />)}
-        {monoliths.map((monolith) => <span className={`space-monolith ${monolith}`} key={monolith} />)}
-        {debris.map((piece) => <span className={`space-debris ${piece}`} key={piece} />)}
         <div className="system-core">
-          <div className="core-top"><span className="signal-dot" /> RKP / SYSTEM CORE <span className="core-state">ONLINE</span></div>
+          <div className="core-top">SYSTEMS · AI · WEB</div>
           <div className="core-body">
             <span className="core-brand">RKP<span>.</span></span>
             <span className="core-line core-line-one" />
@@ -101,11 +97,8 @@ export default function HeroScene() {
             <span className="core-line core-line-three" />
             <span className="core-pulse" />
           </div>
-          <div className="core-bottom"><span>BUILD / DEBUG / ITERATE</span><span>v0.1</span></div>
         </div>
       </div>
-      <div className="orbit-marker orbit-marker-top" aria-hidden="true">RKP / 01</div>
-      <div className="orbit-marker orbit-marker-bottom" aria-hidden="true">SYSTEMS / AI / WEB</div>
     </div>
   );
 }
