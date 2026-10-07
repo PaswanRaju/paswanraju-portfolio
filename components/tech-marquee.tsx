@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, BrainCircuit, Cloud, Code2, Database, GitBranch, Globe2, MonitorCog, type LucideIcon } from "lucide-react";
 import { skillGroups } from "../data/site";
 
@@ -31,17 +30,13 @@ export function getTechIcon(technology: string) {
 const technologies = skillGroups.flatMap((group) => group.items).filter((item, index, items) => items.indexOf(item) === index);
 
 export default function TechMarquee() {
-  const reduced = useReducedMotion();
   const items = [...technologies, ...technologies];
 
   return (
     <div className="tech-marquee" aria-label="Technologies used and currently learning">
       <div className="tech-marquee-edge tech-marquee-edge-left" aria-hidden="true" />
-      <motion.div
-        className="tech-marquee-track"
-        animate={reduced ? undefined : { x: ["-50%", "0%"] }}
-        transition={reduced ? undefined : { duration: 34, ease: "linear", repeat: Infinity }}
-      >
+      {/* Animated in CSS (see .tech-marquee-track) so it runs on the compositor instead of a per-frame JS loop. */}
+      <div className="tech-marquee-track">
         {items.map((technology, index) => {
           const Icon = getTechIcon(technology);
           return (
@@ -52,7 +47,7 @@ export default function TechMarquee() {
             </span>
           );
         })}
-      </motion.div>
+      </div>
       <div className="tech-marquee-edge tech-marquee-edge-right" aria-hidden="true" />
     </div>
   );

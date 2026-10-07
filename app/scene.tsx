@@ -25,45 +25,61 @@ export default function HeroScene() {
     let currentY = 0;
     let currentScroll = 0;
 
+    // The loop only runs while the eased values are still settling, then stops until the next pointer or scroll input.
     const render = () => {
+      frame = 0;
       currentX += (pointerX - currentX) * 0.06;
       currentY += (pointerY - currentY) * 0.06;
       currentScroll += (targetScroll - currentScroll) * 0.05;
       scene.style.setProperty("--orbit-x", `${currentX.toFixed(2)}deg`);
       scene.style.setProperty("--orbit-y", `${currentY.toFixed(2)}deg`);
       scene.style.setProperty("--orbit-depth", `${(currentScroll * -18).toFixed(2)}px`);
-      frame = requestAnimationFrame(render);
+      const settling = Math.abs(pointerX - currentX) > 0.005 || Math.abs(pointerY - currentY) > 0.005 || Math.abs(targetScroll - currentScroll) > 0.0005;
+      if (settling) frame = requestAnimationFrame(render);
+    };
+    const start = () => {
+      if (!frame) frame = requestAnimationFrame(render);
     };
 
     const onPointerMove = (event: PointerEvent) => {
       const bounds = scene.getBoundingClientRect();
       pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 5;
       pointerY = ((event.clientY - bounds.top) / bounds.height - 0.5) * -5;
+      start();
     };
     const onPointerLeave = () => {
       pointerX = 0;
       pointerY = 0;
+      start();
     };
     const onScroll = () => {
-      targetScroll = Math.min(window.scrollY / Math.max(window.innerHeight, 1), 1);
+      const next = Math.min(window.scrollY / Math.max(window.innerHeight, 1), 1);
+      if (next === targetScroll) return;
+      targetScroll = next;
+      start();
     };
+    // Pause the scene's CSS keyframe animations while the hero is offscreen.
+    const visibility = new IntersectionObserver(([entry]) => scene.classList.toggle("is-offscreen", !entry.isIntersecting));
 
     scene.addEventListener("pointermove", onPointerMove, { passive: true });
     scene.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("scroll", onScroll, { passive: true });
+    visibility.observe(scene);
     onScroll();
-    frame = requestAnimationFrame(render);
+    start();
 
     return () => {
       scene.removeEventListener("pointermove", onPointerMove);
       scene.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("scroll", onScroll);
+      visibility.disconnect();
+      scene.classList.remove("is-offscreen");
       cancelAnimationFrame(frame);
     };
   }, [reduced]);
 
   return (
-    <div ref={sceneRef} className={`scene-shell${reduced ? " scene-static" : ""}`} aria-label="Abstract orbital engineering system">
+    <div ref={sceneRef} className="scene-shell" aria-label="Abstract orbital engineering system">
       <div className="orbit-aura" aria-hidden="true" />
       <div className="orbit-system" aria-hidden="true">
         <span className="orbit-ring orbit-ring-outer" />

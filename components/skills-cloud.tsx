@@ -29,25 +29,29 @@ function createPoints(): CloudPoint[] {
   });
 }
 
-export default function SkillsCloud({ reduced }: { reduced: boolean }) {
+export default function SkillsCloud() {
   const cloudRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<(HTMLSpanElement | null)[]>([]);
   const rotation = useRef({ x: -0.12, y: 0.18 });
   const velocity = useRef({ x: 0, y: 0.0028 });
   const pointer = useRef({ x: 0, y: 0, dragging: false, active: false });
   const points = useMemo(() => createPoints(), []);
-  const reducedPreference = useReducedMotion();
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const cloud = cloudRef.current;
     if (!cloud) return;
+    const animated = !reduced;
     let frame = 0;
     let lastTime = performance.now();
+    let visible = false;
+    let pointRadius = Math.min(205, cloud.clientWidth * 0.34);
 
     const render = (time: number) => {
+      frame = 0;
       const delta = Math.min((time - lastTime) / 16.67, 2);
       lastTime = time;
-      if (!reduced && !reducedPreference) {
+      if (animated) {
         if (!pointer.current.dragging) {
           const hoverFactor = pointer.current.active ? 0.22 : 1;
           rotation.current.y += velocity.current.y * delta * hoverFactor;
@@ -61,7 +65,6 @@ export default function SkillsCloud({ reduced }: { reduced: boolean }) {
       const cosY = Math.cos(rotation.current.y);
       const sinX = Math.sin(rotation.current.x);
       const cosX = Math.cos(rotation.current.x);
-      const pointRadius = Math.min(205, cloud.clientWidth * 0.34);
       points.forEach((point, index) => {
         const x = point.x * cosY + point.z * sinY;
         const depth = -point.x * sinY + point.z * cosY;
@@ -79,8 +82,23 @@ export default function SkillsCloud({ reduced }: { reduced: boolean }) {
       });
       cloud.style.setProperty("--cloud-tilt-x", `${rotation.current.x * 7}deg`);
       cloud.style.setProperty("--cloud-tilt-y", `${rotation.current.y * 5}deg`);
+      if (animated && visible) frame = requestAnimationFrame(render);
+    };
+    // Continuous rotation only while the cloud is on screen; reduced motion renders a single static frame.
+    const requestRender = () => {
+      if (frame) return;
+      lastTime = performance.now();
       frame = requestAnimationFrame(render);
     };
+    const visibility = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) requestRender();
+    });
+    // Cache the cloud size instead of reading layout every frame.
+    const resize = new ResizeObserver(([entry]) => {
+      pointRadius = Math.min(205, entry.contentRect.width * 0.34);
+      requestRender();
+    });
 
     const onPointerEnter = () => { pointer.current.active = true; };
     const onPointerLeave = () => {
@@ -94,7 +112,7 @@ export default function SkillsCloud({ reduced }: { reduced: boolean }) {
       cloud.setPointerCapture(event.pointerId);
     };
     const onPointerMove = (event: PointerEvent) => {
-      if (!pointer.current.dragging || reduced || reducedPreference) return;
+      if (!pointer.current.dragging || reduced) return;
       const dx = event.clientX - pointer.current.x;
       const dy = event.clientY - pointer.current.y;
       pointer.current.x = event.clientX;
@@ -111,20 +129,24 @@ export default function SkillsCloud({ reduced }: { reduced: boolean }) {
     cloud.addEventListener("pointerdown", onPointerDown);
     cloud.addEventListener("pointermove", onPointerMove);
     cloud.addEventListener("pointerup", onPointerUp);
-    frame = requestAnimationFrame(render);
+    visibility.observe(cloud);
+    resize.observe(cloud);
+    requestRender();
     return () => {
       cancelAnimationFrame(frame);
+      visibility.disconnect();
+      resize.disconnect();
       cloud.removeEventListener("pointerenter", onPointerEnter);
       cloud.removeEventListener("pointerleave", onPointerLeave);
       cloud.removeEventListener("pointerdown", onPointerDown);
       cloud.removeEventListener("pointermove", onPointerMove);
       cloud.removeEventListener("pointerup", onPointerUp);
     };
-  }, [points, reduced, reducedPreference]);
+  }, [points, reduced]);
 
   return (
     <div className="skills-cloud-wrap">
-      <div className={`skills-cloud${reduced || reducedPreference ? " skills-cloud-static" : ""}`} ref={cloudRef} aria-label="Interactive technology icon cloud">
+      <div className="skills-cloud" ref={cloudRef} aria-label="Interactive technology icon cloud">
         <span className="skills-cloud-aura" aria-hidden="true" />
         <span className="skills-cloud-ring skills-cloud-ring-one" aria-hidden="true" />
         <span className="skills-cloud-ring skills-cloud-ring-two" aria-hidden="true" />

@@ -1,47 +1,37 @@
-import { type MotionProps, type TargetAndTransition, useSpring, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { type MotionStyle, useMotionValue, useReducedMotion } from "framer-motion";
+import { type PointerEvent } from "react";
 
-export const fadeUp: MotionProps["variants"] = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
-};
+// Pointer-driven 3D tilt plus a glow position exposed as CSS variables.
+// Values go through motion values, so pointer moves never re-render React.
+// Reduced motion is read only inside the event handler, never during render, so markup is identical on server and client.
+export function usePointerTilt({ perspective, maxRotateX, maxRotateY, glowVars }: {
+  perspective: number;
+  maxRotateX: number;
+  maxRotateY: number;
+  glowVars: readonly [x: `--${string}`, y: `--${string}`];
+}) {
+  const reduced = useReducedMotion();
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const glowX = useMotionValue("50%");
+  const glowY = useMotionValue("50%");
 
-export const scaleReveal: MotionProps["variants"] = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
-};
-
-export const maskedReveal: MotionProps["variants"] = {
-  hidden: { opacity: 0, y: "100%" },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
-};
-
-export const staggerChildren: MotionProps["variants"] = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-};
-
-export const hoverLift: TargetAndTransition = {
-  y: -5,
-  transition: { type: "spring", stiffness: 320, damping: 24 },
-};
-
-export function useParallax(distance = 24) {
-  const ref = useRef<HTMLDivElement>(null);
-  const progress = useSpring(0, { stiffness: 80, damping: 22 });
-  const y = useTransform(progress, [-1, 1], [distance, -distance]);
-
-  return { ref, style: { y }, setProgress: progress.set };
-}
-
-export function magneticOffset(
-  event: { clientX: number; clientY: number },
-  element: HTMLElement,
-  strength = 0.12,
-) {
-  const bounds = element.getBoundingClientRect();
-  return {
-    x: (event.clientX - (bounds.left + bounds.width / 2)) * strength,
-    y: (event.clientY - (bounds.top + bounds.height / 2)) * strength,
+  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
+    if (reduced || event.pointerType !== "mouse") return;
+    // Reading layout here is safe: motion value writes are batched into the next frame, not applied synchronously.
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+    rotateX.set((y - 0.5) * -maxRotateX);
+    rotateY.set((x - 0.5) * maxRotateY);
+    glowX.set(`${x * 100}%`);
+    glowY.set(`${y * 100}%`);
   };
+  const onPointerLeave = () => {
+    rotateX.set(0);
+    rotateY.set(0);
+  };
+
+  const style = { rotateX, rotateY, transformPerspective: perspective, [glowVars[0]]: glowX, [glowVars[1]]: glowY } as MotionStyle;
+  return { style, onPointerMove, onPointerLeave };
 }
