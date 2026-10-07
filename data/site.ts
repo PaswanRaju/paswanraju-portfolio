@@ -25,20 +25,64 @@ export const currentFocus = ["CS @ UTA", "Building software", "Exploring AI & cl
 
 export const experience = [
   {
-    title: "Student Technical Assistant — Academic Technology",
+    title: "Student Technical Assistant",
     company: "UTA Office of Information Technology",
-    date: "Sep. 2026 – Present",
-    responsibilities: ["Troubleshoot classroom and lab technology across hardware, software, AV systems, printers, and peripherals.", "Document issues clearly and consistently.", "Escalate complex cases using structured problem-solving."],
-    tools: ["Hardware", "AV systems", "Printers", "Troubleshooting"],
+    date: "Sep 2026 – Present",
+    responsibilities: ["Troubleshoot classroom and lab technology across hardware, software, AV systems, and printers.", "Document technical issues.", "Escalate complex cases when necessary."],
+    tools: ["Hardware", "Software", "AV systems", "Printers"],
   },
   {
     title: "IT Support Volunteer",
-    company: "Nepal Red Cross Society — Nepal",
+    company: "Nepal Red Cross Society / Nepal",
     date: "May 2023 – Jul 2023",
-    responsibilities: ["Provided front-line IT support for office staff, explaining technical problems and solutions clearly.", "Configured and maintained workstations; installed and reimaged Windows and Linux systems, drivers, updates, software, printers, and peripherals.", "Diagnosed hardware, software, and network-connectivity issues; documented troubleshooting and escalated unresolved problems.", "Assisted with website updates using HTML, CSS, and JavaScript and tested across common browsers.", "Created and remediated accessible PDF documents in Adobe Acrobat Pro using tags, headings, reading order, alt text, links, and form fields."],
+    responsibilities: ["Front-line IT support.", "Windows/Linux workstation setup.", "Hardware/software/network diagnostics.", "Website updates using HTML/CSS/JavaScript.", "Accessible PDF support."],
     tools: ["Windows", "Linux", "Networking", "HTML/CSS", "JavaScript", "Accessibility"],
   },
 ] as const;
+
+export type LeetCodeProfile = {
+  username: string;
+  profileUrl: string;
+  totalSolved: number | null;
+  totalQuestions: number | null;
+  easySolved: number | null;
+  easyTotal: number | null;
+  mediumSolved: number | null;
+  mediumTotal: number | null;
+  hardSolved: number | null;
+  hardTotal: number | null;
+  ranking: number | null;
+  language: string;
+  languageSolved: number;
+  topicActivity: readonly { label: string; count: number; group: "Advanced" | "Intermediate" | "Fundamental" }[];
+};
+
+export const leetcodeProfile: LeetCodeProfile = {
+  username: "raju_algo",
+  profileUrl: "https://leetcode.com/u/raju_algo/",
+  totalSolved: null,
+  totalQuestions: null,
+  easySolved: null,
+  easyTotal: null,
+  mediumSolved: null,
+  mediumTotal: null,
+  hardSolved: null,
+  hardTotal: null,
+  ranking: null,
+  language: "C",
+  languageSolved: 53,
+  topicActivity: [
+    { label: "Dynamic Programming", count: 11, group: "Advanced" },
+    { label: "Divide and Conquer", count: 2, group: "Advanced" },
+    { label: "Trie", count: 1, group: "Advanced" },
+    { label: "Tree", count: 14, group: "Intermediate" },
+    { label: "Binary Tree", count: 14, group: "Intermediate" },
+    { label: "Math", count: 12, group: "Intermediate" },
+    { label: "Array", count: 18, group: "Fundamental" },
+    { label: "String", count: 12, group: "Fundamental" },
+    { label: "Two Pointers", count: 8, group: "Fundamental" },
+  ],
+};
 
 export type Project = (typeof projects)[number];
 export const projects = [
@@ -50,11 +94,11 @@ export const projects = [
 ] as const;
 
 export const skillGroups = [
-  { label: "Languages", state: "Used / verified", items: ["Java", "Python", "C", "C++", "SQL", "JavaScript", "HTML/CSS"] },
-  { label: "Databases", state: "Used / verified", items: ["MySQL", "SQL", "Relational Modeling"] },
-  { label: "Currently learning", state: "In progress", items: ["Redis", "Vector Databases", "DynamoDB", "NoSQL concepts"] },
-  { label: "Tools / Libraries", state: "Used / verified", items: ["Git", "GitHub", "Linux", "Pandas", "scikit-learn", "Matplotlib", "QEMU", "GDB", "Make"] },
-  { label: "Backend & Cloud", state: "Currently learning", items: ["FastAPI", "React", "Spring Boot", "RESTful API design", "AWS EC2", "S3", "RDS", "Docker", "GitHub Actions"] },
+  { label: "Languages", state: "Used / verified", items: ["Python", "Java", "JavaScript", "C", "SQL"] },
+  { label: "Databases", state: "Used / verified", items: ["PostgreSQL", "MySQL"] },
+  { label: "Tools / Systems", state: "Used / verified", items: ["Git", "Docker", "Linux", "GDB", "QEMU"] },
+  { label: "Web / Backend", state: "Used / verified", items: ["Spring Boot", "React", "Next.js"] },
+  { label: "Currently learning", state: "In progress", items: ["AI / ML", "Cloud Systems"] },
 ] as const;
 
 export const skillProjectLinks = {
