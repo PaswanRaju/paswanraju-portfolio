@@ -104,7 +104,7 @@ class WebGLFallback extends Component<{ children: ReactNode }, { failed: boolean
   }
 }
 
-export default function AtmosphereCanvas() {
+export default function AtmosphereCanvas({ paused: externallyPaused = false }: { paused?: boolean }) {
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function AtmosphereCanvas() {
     <div className="atmosphere" aria-hidden="true">
       <WebGLFallback>
         {/* pointer-events: none keeps R3F's own pointer handling out of the way; Constellation tracks the pointer itself. */}
-        <Canvas style={{ pointerEvents: "none" }} dpr={[1, 1.35]} frameloop={paused ? "never" : "always"} gl={{ antialias: false, alpha: true, powerPreference: "low-power" }} camera={{ position: [0, 0, 8], fov: 45 }}>
+        <Canvas style={{ pointerEvents: "none" }} dpr={[1, 1.35]} frameloop={paused || externallyPaused ? "never" : "always"} gl={{ antialias: false, alpha: true, powerPreference: "low-power" }} camera={{ position: [0, 0, 8], fov: 45 }}>
           <Constellation />
         </Canvas>
       </WebGLFallback>

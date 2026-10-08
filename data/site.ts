@@ -1,7 +1,7 @@
 export const personalInfo = {
   name: "Raju Kumar Paswan",
   shortName: "Raju Paswan",
-  role: "Computer Science Student • Software Engineer • Builder",
+  role: "Computer Science Student • Software Developer • Builder",
   intro: "Computer Science student at UTA exploring software engineering, AI, cloud systems, full-stack development, and systems programming.",
   email: "paswanrajukumar890@gmail.com",
 } as const;
@@ -16,6 +16,7 @@ export const siteLinks = {
 export const education = {
   school: "The University of Texas at Arlington",
   degree: "Bachelor of Science in Computer Science",
+  degreeShort: "B.S. Computer Science",
   minor: "Minor in Data Science",
   coursework: ["Data Structures & Algorithms", "Object-Oriented Programming", "Database Systems", "Computer Organization", "Operating Systems", "Discrete Mathematics", "Software Engineering"],
   organizations: ["ACM Research", "ACM", "Data Science Club", "CSEC", "HackUTA"],
@@ -86,9 +87,9 @@ export const leetcodeProfile: LeetCodeProfile = {
 
 export type Project = (typeof projects)[number];
 export const projects = [
-  { number: "01", title: "3D Tic Tac Toe", status: "Completed", tone: "violet", visual: "game", description: "I built a browser Tic Tac Toe game with a 3D-style board, animated moves, win and draw detection, and score tracking, using plain HTML, CSS, and JavaScript.", tags: ["HTML", "CSS", "JavaScript"], github: "https://github.com/PaswanRaju/3d-tic-tac-toe", liveDemo: "https://paswanraju.github.io/3d-tic-tac-toe/", problem: "Create a polished, approachable browser game without a heavy runtime.", approach: "Built the game interface around responsive layouts, animated state changes, and score tracking.", decisions: "Kept the implementation lightweight with browser-native HTML, CSS, and JavaScript.", outcome: "Completed and deployed as a playable browser game on GitHub Pages.", note: { label: "Next", text: "Add a Player vs Computer mode with easy, medium, and hard difficulty." } },
-  { number: "02", title: "OperatorLoop", status: "Completed", tone: "teal", visual: "data", description: "I built a human-in-the-loop decision-support pipeline for manufacturing sensor data. It flags abnormal runs, retrieves process guidance, checks recommendations against safety constraints, and logs whether the operator approves, edits, or rejects them.", tags: ["Python", "Pandas", "scikit-learn", "Matplotlib", "TF-IDF", "Git"], github: "https://github.com/PaswanRaju/OperatorLoop-Manufacturing-AI", liveDemo: "", problem: "Support manufacturing operators with explainable guidance around sensor anomalies.", approach: "Prioritized exact process-condition matching before TF-IDF similarity ranking. Evaluated retrieval and safety validation across 160 synthetic runs with 28 injected anomalies, and created vibration-monitoring visualizations.", decisions: "Focused on reproducible code, technical documentation, explicit safety validation, and operator feedback rather than opaque automation.", outcome: "Completed technical project evaluated across the documented synthetic runs.", note: { label: "What was tricky", text: "Retrieval sometimes returned the wrong guidance (a vibration problem pulled up overheating advice) until I matched the exact process condition first and used TF-IDF after that." } },
-  { number: "03", title: "AArch64 Teaching Kernel Lab", status: "Completed", tone: "amber", visual: "kernel", description: "A bare-metal 64-bit ARM teaching kernel for Raspberry Pi 3 that I worked through in QEMU: inspecting the ELF, validating the boot in GDB, and stepping through AArch64 instructions.", tags: ["C", "ARM Assembly", "QEMU", "GDB", "Make", "Git"], github: "", liveDemo: "", problem: "Understand boot flow, binary layout, and exception-level state on AArch64.", approach: "Inspected ELF sections and symbols with nm, objdump, and binary tools; validated boot flow in QEMU/GDB and stepped through instructions and registers.", decisions: "Used Make, shell scripts, and Git/GitHub for a reproducible build and debug workflow.", outcome: "Completed systems programming and low-level debugging lab.", note: { label: "What was tricky", text: "Debugging the boot meant reading registers and execution state directly, before any higher-level tooling was running." } },
+  { number: "01", title: "OperatorLoop", status: "Completed", tone: "teal", visual: "data", description: "I built a human-in-the-loop decision-support pipeline for manufacturing sensor data. It flags abnormal runs, retrieves process guidance, checks recommendations against safety constraints, and logs whether the operator approves, edits, or rejects them.", tags: ["Python", "Pandas", "scikit-learn", "Matplotlib", "TF-IDF", "Git"], github: "https://github.com/PaswanRaju/OperatorLoop-Manufacturing-AI", liveDemo: "", problem: "Support manufacturing operators with explainable guidance around sensor anomalies.", approach: "Prioritized exact process-condition matching before TF-IDF similarity ranking. Evaluated retrieval and safety validation across 160 synthetic runs with 28 injected anomalies, and created vibration-monitoring visualizations.", decisions: "Focused on reproducible code, technical documentation, explicit safety validation, and operator feedback rather than opaque automation.", outcome: "Completed technical project evaluated across the documented synthetic runs.", note: { label: "What was tricky", text: "Retrieval sometimes returned the wrong guidance (a vibration problem pulled up overheating advice) until I matched the exact process condition first and used TF-IDF after that." } },
+  { number: "02", title: "AArch64 Teaching Kernel Lab", status: "Completed", tone: "amber", visual: "kernel", description: "A bare-metal 64-bit ARM teaching kernel for Raspberry Pi 3 that I worked through in QEMU: inspecting the ELF, validating the boot in GDB, and stepping through AArch64 instructions.", tags: ["C", "ARM Assembly", "QEMU", "GDB", "Make", "Git"], github: "", liveDemo: "", problem: "Understand boot flow, binary layout, and exception-level state on AArch64.", approach: "Inspected ELF sections and symbols with nm, objdump, and binary tools; validated boot flow in QEMU/GDB and stepped through instructions and registers.", decisions: "Used Make, shell scripts, and Git/GitHub for a reproducible build and debug workflow.", outcome: "Completed systems programming and low-level debugging lab.", note: { label: "What was tricky", text: "Debugging the boot meant reading registers and execution state directly, before any higher-level tooling was running." } },
+  { number: "03", title: "3D Tic Tac Toe", status: "Completed", tone: "violet", visual: "game", description: "I built a browser Tic Tac Toe game with a 3D-style board, animated moves, win and draw detection, and score tracking, using plain HTML, CSS, and JavaScript.", tags: ["HTML", "CSS", "JavaScript"], github: "https://github.com/PaswanRaju/3d-tic-tac-toe", liveDemo: "https://paswanraju.github.io/3d-tic-tac-toe/", problem: "Create a polished, approachable browser game without a heavy runtime.", approach: "Built the game interface around responsive layouts, animated state changes, and score tracking.", decisions: "Kept the implementation lightweight with browser-native HTML, CSS, and JavaScript.", outcome: "Completed and deployed as a playable browser game on GitHub Pages.", note: { label: "Next", text: "Add a Player vs Computer mode with easy, medium, and hard difficulty." } },
   { number: "04", title: "MavRAG Course Assistant", status: "In Progress", tone: "violet", visual: "rag", description: "A planned course assistant for PDF ingestion, grounded answers, source citations, and retrieval evaluation.", tags: ["Python", "FastAPI", "LangChain", "ChromaDB", "Docker", "AWS"], github: "", liveDemo: "", problem: "Make course materials easier to search while keeping answers grounded in source documents.", approach: "Planned architecture includes ingestion, embeddings, vector storage, retrieval, citations, REST APIs, semantic-search evaluation, caching, and latency/error logging.", decisions: "Prompt/version tracking and retrieval testing are planned alongside Docker deployment to AWS EC2/S3.", outcome: "In progress. The architecture above is the plan; the implementation is not finished yet.", note: null },
   { number: "05", title: "Cloud-Native Task Platform", status: "In Progress", tone: "teal", visual: "cloud", description: "A planned task platform with a React frontend, Spring Boot API, relational persistence, authentication, caching, and cloud deployment.", tags: ["Java", "Spring Boot", "React", "MySQL", "Redis", "AWS", "Docker", "GitHub Actions"], github: "", liveDemo: "", problem: "Design a maintainable task workflow with a clear path from local development to cloud deployment.", approach: "Planned architecture covers JWT authentication, RBAC, validation, pagination, indexing, Redis caching, tests, and horizontal scaling.", decisions: "Docker, GitHub Actions, AWS RDS/EC2, and CloudWatch are planned as the delivery and operations foundation.", outcome: "In progress. The architecture above is the target design; the build is not finished yet.", note: null },
 ] as const;
@@ -113,6 +114,36 @@ export const skillProjectLinks: Partial<Record<SkillName, readonly Extract<Proje
   QEMU: ["AArch64 Teaching Kernel Lab"],
   "AI / ML": ["OperatorLoop"],
 };
+
+// System Map. Skills and their projects come straight from each project's `tags`; this only adds which
+// engineering area a tag serves in that project. Keys are type-checked against the project's real tags.
+// Git is left off on purpose: it's in every project's workflow, not tied to one area.
+export const engineeringAreas = [
+  { id: "frontend", label: "Frontend" },
+  { id: "ai-data", label: "AI / Data" },
+  { id: "retrieval", label: "Retrieval" },
+  { id: "systems", label: "Systems & debugging" },
+  { id: "backend", label: "Backend & APIs" },
+  { id: "data-layer", label: "Data layer" },
+  { id: "deployment", label: "Deployment" },
+] as const;
+export type AreaId = (typeof engineeringAreas)[number]["id"];
+type ProjectAreaMap = { [P in Project as P["title"]]: Partial<Record<P["tags"][number], AreaId>> };
+export const systemMapAreas: ProjectAreaMap = {
+  "3D Tic Tac Toe": { HTML: "frontend", CSS: "frontend", JavaScript: "frontend" },
+  OperatorLoop: { Python: "ai-data", Pandas: "ai-data", "scikit-learn": "ai-data", Matplotlib: "ai-data", "TF-IDF": "retrieval" },
+  "AArch64 Teaching Kernel Lab": { C: "systems", "ARM Assembly": "systems", QEMU: "systems", GDB: "systems", Make: "systems" },
+  "MavRAG Course Assistant": { Python: "retrieval", FastAPI: "backend", LangChain: "retrieval", ChromaDB: "retrieval", Docker: "deployment", AWS: "deployment" },
+  "Cloud-Native Task Platform": { Java: "backend", "Spring Boot": "backend", React: "frontend", MySQL: "data-layer", Redis: "data-layer", Docker: "deployment", AWS: "deployment", "GitHub Actions": "deployment" },
+};
+
+// "How I Think": each principle points back to work already described on this page (projects or experience).
+export const thinkingPrinciples = [
+  { number: "01", title: "Start simple", body: "I like getting the basic version working first, then adding complexity when there's an actual reason for it.", source: "From 3D Tic Tac Toe", detail: "It shipped as plain HTML, CSS, and JavaScript. A Player vs Computer mode comes next, not first." },
+  { number: "02", title: "Debug what's actually happening", body: "Working with QEMU and GDB taught me to inspect registers, execution state, and program behavior instead of guessing.", source: "From the AArch64 lab", detail: "Stepping through the boot one instruction at a time." },
+  { number: "03", title: "Measure before guessing", body: "With OperatorLoop, testing the pipeline across many runs exposed problems that weren't obvious from a few examples.", source: "From OperatorLoop", detail: "Evaluated across 160 synthetic runs with 28 injected anomalies." },
+  { number: "04", title: "Build for the person using it", body: "Technical correctness matters, but the software still needs to make sense to the person using it.", source: "From IT support", detail: "Front-line IT support and accessible PDF support at the Nepal Red Cross Society, and classroom technology support at UTA." },
+] as const;
 
 // A plain log of what I've been building. Dates come from git history and the GitHub repos; undated work is left out.
 export const buildNotes = [

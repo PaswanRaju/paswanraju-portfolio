@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { InlineScript } from "../components/inline-script";
-import { personalInfo } from "../data/site";
+import { education, personalInfo, siteLinks } from "../data/site";
 import { revealBodyScript, revealHeadScript } from "../lib/reveal";
 import "./globals.css";
 
@@ -15,24 +15,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://paswanraju.com";
+const title = "Raju Kumar Paswan | Computer Science Student & Software Developer";
+const description = "Computer Science student at UTA building projects across systems, AI, and the web.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://paswanraju.com"),
-  title: "Raju Kumar Paswan | Software Engineer",
-  description:
-    "Computer Science student at UTA building software across systems, AI, and the web.",
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
   alternates: { canonical: "/" },
-  openGraph: {
-    title: "Raju Kumar Paswan | Software Engineer",
-    description: "Computer Science student at UTA building software across systems, AI, and the web.",
-    url: "https://paswanraju.com",
-    siteName: "Raju Kumar Paswan",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "Raju Kumar Paswan | Software Engineer",
-    description: "Computer Science student at UTA building software across systems, AI, and the web.",
-  },
+  openGraph: { title, description, url: siteUrl, siteName: personalInfo.name, type: "website" },
+  twitter: { card: "summary", title, description },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -54,11 +47,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Person",
-            name: "Raju Kumar Paswan",
-            jobTitle: "Software Engineer",
-            url: "https://paswanraju.com",
+            name: personalInfo.name,
+            jobTitle: "Computer Science Student",
+            affiliation: { "@type": "CollegeOrUniversity", name: education.school },
+            url: siteUrl,
             email: personalInfo.email,
-            sameAs: ["https://github.com/PaswanRaju", "https://linkedin.com/in/paswanrajukumar"],
+            sameAs: [siteLinks.github, siteLinks.linkedin],
           }) }}
         />
       </body>
