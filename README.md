@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Raju Kumar Paswan — Portfolio
 
-## Getting Started
+Personal portfolio website for showcasing my projects, experience, skills, and the things I’m currently building as a Computer Science student at The University of Texas at Arlington.
 
-First, run the development server:
+Live site: [paswanraju.com](https://paswanraju.com)
+
+## About
+
+I’m a Computer Science student at UTA with a minor in Data Science.
+
+I learn by building — from low-level systems and AI experiments to web projects.
+
+This portfolio is designed and built by me using Next.js, TypeScript, Three.js, React Three Fiber, Framer Motion, and Tailwind CSS.
+
+## Features
+
+- Responsive portfolio design
+- Recruiter Mode
+- Interactive System Map
+- 3D Resume Explorer
+- Accessible 2D Resume Explorer fallback
+- “How I Think” engineering section
+- Build Notes / development log
+- Project case studies
+- GitHub and LeetCode sections
+- Command palette
+- Terminal Easter egg
+- Reduced-motion support
+- Mobile and keyboard accessibility
+- WebGL fallback for mobile and low-power devices
+- SEO metadata, sitemap, robots.txt, and Open Graph support
+
+## Projects Featured
+
+### OperatorLoop — Human-in-the-Loop Manufacturing AI
+
+A Python decision-support pipeline for manufacturing sensor data.
+
+Highlights:
+- sensor data processing
+- anomaly classification
+- exact-match guidance retrieval
+- TF-IDF fallback retrieval
+- safety validation
+- operator feedback logging
+- evaluation across 160 synthetic runs
+
+Tech:
+
+`Python` `Pandas` `scikit-learn` `Matplotlib` `TF-IDF`
+
+### AArch64 Teaching Kernel Lab
+
+Bare-metal ARM64 systems work using QEMU and GDB.
+
+Highlights:
+- Raspberry Pi 3 / AArch64 boot flow
+- ARM assembly
+- kernel image inspection
+- register and execution-state debugging
+- QEMU and GDB workflow
+
+Tech:
+
+`C` `ARM Assembly` `QEMU` `GDB` `Make`
+
+### 3D Tic Tac Toe
+
+An interactive Tic Tac Toe project with a futuristic 3D-inspired interface.
+
+Tech:
+
+`HTML` `CSS` `JavaScript`
+
+Live demo:
+[paswanraju.github.io/3d-tic-tac-toe](https://paswanraju.github.io/3d-tic-tac-toe/)
+
+### MavRAG Course Assistant
+
+Status: **In Progress**
+
+A planned retrieval-augmented generation system for course materials using document ingestion, embeddings, vector retrieval, and grounded responses.
+
+Tech:
+
+`Python` `FastAPI` `LangChain` `ChromaDB` `Docker` `AWS`
+
+### Cloud-Native Task Platform
+
+Status: **In Progress**
+
+A planned full-stack task platform focused on authentication, caching, deployment, monitoring, and cloud-native architecture.
+
+Tech:
+
+`Java` `Spring Boot` `React` `MySQL` `Redis` `AWS`
+
+## Tech Stack
+
+### Frontend
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+
+### 3D / Interactive
+- Three.js
+- React Three Fiber
+- Drei
+
+### Development
+- Git
+- GitHub
+- VS Code
+- Claude Code
+- GitHub Copilot
+
+### Deployment
+- Vercel
+- Cloudflare DNS
+
+## Performance
+
+The portfolio includes several performance optimizations:
+
+- lazy-loaded 3D Resume Explorer
+- reduced WebGL draw calls
+- WebGL disabled on unsupported / low-power devices
+- static fallback visuals for mobile
+- paused animation loops when content is offscreen
+- reduced-motion support
+- optimized first paint
+- hydration-safe animations
+- lightweight SVG-based System Map
+
+## Accessibility
+
+The site includes:
+
+- keyboard navigation
+- visible focus states
+- accessible dialogs
+- focus trapping and focus return
+- Escape-to-close behavior
+- touch-friendly controls
+- skip-to-content support
+- semantic headings and landmarks
+- reduced-motion support
+- mobile-friendly 2D alternatives for 3D experiences
+
+## Running Locally
+
+Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone https://github.com/PaswanRaju/paswanraju-portfolio.git
