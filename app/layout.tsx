@@ -28,7 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // suppressHydrationWarning: the head script adds data-js-reveal to <html> before React hydrates.
     <html
       lang="en"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${inter.className} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

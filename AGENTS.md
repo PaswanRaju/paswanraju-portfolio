@@ -22,10 +22,14 @@ Three.js background, dark theme, terminal button, ⌘K command menu, recruiter m
 
 ## Design system
 - Background: off-white #F7F7F5. Cards: white, thin light-gray border, ~12px rounded corners.
-- Headings: navy #1B2033. Body text: gray #5A6270.
-- Accent blue #3B57C4 (links, filled buttons, active nav). Red dot #D9534F after last name. Yellow accent bar above photo.
-- Font: Inter. Section headings: uppercase, extra-bold, tight letter-spacing, thick colored bar on the left (rotate blue, red, green, purple, orange per section).
-- Buttons: filled blue or outlined blue, rounded, with arrow icons.
+- Text: near-black #111111 for headings, gray #5A6270 for body text.
+- Ultra violet #6B5B95: primary accent (links, filled buttons, active nav, highlighted text).
+- Coral #FF6F61: secondary accent for decorative details only (dots, bars, borders, hover glows). Never use it for small text.
+- Green #88B04B: tertiary accent for decorative details (bars, status dots, tags).
+- Rose quartz #F7CAC9 and serenity #92A8D1: soft backgrounds for cards, pills, and hover fills.
+- Section heading left bars rotate: violet, coral, green, serenity.
+- Font: Inter. Section headings: uppercase, extra-bold, tight letter-spacing, thick colored bar on the left (rotate violet, coral, green, serenity per section).
+- Buttons: filled violet or outlined violet, rounded, with arrow icons.
 - Must be responsive on mobile.
 
 ## Working rules
