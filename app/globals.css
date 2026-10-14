@@ -49,6 +49,51 @@ body {
 .header-contact, .text-link, .main-nav a.active { color: #3b57c4; }
 .wordmark span, .hero h1 span, h2 span { color: #3b57c4; }
 
+/* Task 2: navbar-only redesign. */
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #e1e4e8;
+  box-shadow: none;
+  max-width: none;
+  padding: 22px max(32px, calc((100vw - 1380px) / 2));
+  position: sticky;
+  width: 100%;
+}
+.site-header::before { display: none; }
+.wordmark { color: #1b2033; font-size: 24px; font-weight: 800; letter-spacing: -.06em; white-space: nowrap; }
+.wordmark .wordmark-first { color: #1b2033; }
+.wordmark .wordmark-last { color: #3b57c4; }
+.main-nav { align-items: center; gap: 30px; margin-left: auto; margin-right: auto; }
+.main-nav a, .more-trigger { background: none; border: 0; color: #1b2033; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0; padding: 10px 0; position: relative; text-transform: none; }
+.main-nav a:hover, .main-nav a.active, .more-trigger:hover, .more-trigger.active { color: #3b57c4; }
+.main-nav a.active::after, .more-trigger.active::after { background: #3b57c4; bottom: 0; content: ""; height: 2px; left: 0; position: absolute; right: 0; }
+.main-nav a i { display: none; }
+.more-nav-item { position: relative; }
+.more-trigger { align-items: center; display: inline-flex; gap: 3px; }
+.more-menu { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; box-shadow: 0 12px 30px rgba(27, 32, 51, .1); display: none; min-width: 140px; padding: 8px; position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; }
+.more-menu.is-open { display: grid; gap: 2px; }
+.more-menu a { border-radius: 5px; display: block; padding: 9px 10px; }
+.more-menu a:hover { background: #f0f3ff; }
+.header-actions { gap: 20px; }
+.header-socials { align-items: center; display: flex; gap: 16px; }
+.header-socials a { align-items: center; color: #5a6270; display: inline-flex; }
+.header-socials a:hover { color: #3b57c4; }
+.menu-toggle { color: #1b2033; }
+
+@media (max-width: 900px) {
+  .site-header { padding: 16px 22px; }
+  .main-nav { background: #fff; border: 1px solid #e1e4e8; border-radius: 10px; box-shadow: 0 12px 30px rgba(27, 32, 51, .1); display: none; gap: 0; left: 16px; margin: 0; padding: 8px; right: 16px; top: calc(100% + 8px); }
+  .main-nav.is-open { display: grid; }
+  .main-nav a, .more-trigger { min-height: 44px; padding: 12px 14px; }
+  .main-nav a.active::after, .more-trigger.active::after { bottom: 6px; left: 14px; right: 14px; }
+  .more-nav-item { display: contents; }
+  .more-menu { border: 0; border-radius: 0; box-shadow: none; display: grid; gap: 0; min-width: 0; padding: 0 0 0 12px; position: static; }
+  .more-menu:not(.is-open) { display: none; }
+  .more-menu a { padding-left: 26px; }
+  .header-socials { display: none; }
+  .menu-toggle { display: inline-flex; }
+}
+
 @media (max-width: 900px) {
   .section-label { margin-bottom: 28px; }
 }

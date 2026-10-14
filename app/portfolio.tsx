@@ -3,17 +3,19 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { AnimatePresence, motion, MotionConfig, useReducedMotion, useScroll } from "framer-motion";
-import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Check, Code2, Copy, ExternalLink, GitBranch, Mail, Menu, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, ExternalLink, GitBranch, Mail, Menu, X } from "lucide-react";
 import { createElement, Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 import { buildNotes, currentFocus, education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, skillProjectLinks, thinkingPrinciples, type Project, type SkillName } from "../data/site";
 import { usePointerTilt } from "../lib/motion";
 import SkillsCloud from "../components/skills-cloud";
 import SystemMap from "../components/system-map";
 import { getTechIcon } from "../components/tech-icons";
+import { GitHubIcon, LeetCodeIcon, LinkedInIcon } from "../components/brand-icons";
 
 // The whole Resume Explorer (2D view, 3D scene) is fetched only when it is first opened.
 const ResumeExplorer = dynamic(() => import("../components/resume-explorer"), { ssr: false, loading: () => <div className="overlay explorer-overlay" aria-hidden="true" /> });
 const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "leetcode", label: "LeetCode" }, { id: "github", label: "GitHub" }, { id: "skills", label: "Skills" }, { id: "contact", label: "Contact" }];
+const headerNavItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "contact", label: "Contact" }];
 const defaultSectionOrder = ["about", "projects", "experience", "thinking", "systemMap", "leetcode", "github", "notes", "skills", "contact"] as const;
 
 // "Computer Science Student" leads; the rest of the role sits on its own line so wrapping never strands a bullet.
@@ -159,7 +161,7 @@ function LeetCodeSection() {
 }
 
 export default function Portfolio() {
-  const [menuOpen, setMenuOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false), [moreOpen, setMoreOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [active, setActive] = useState("about");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
@@ -194,11 +196,11 @@ export default function Portfolio() {
 
   // Close the mobile menu on a tap outside the header.
   useEffect(() => {
-    if (!menuOpen) return;
-    const onPointerDown = (event: PointerEvent) => { if (!headerRef.current?.contains(event.target as Node)) setMenuOpen(false); };
+    if (!menuOpen && !moreOpen) return;
+    const onPointerDown = (event: PointerEvent) => { if (!headerRef.current?.contains(event.target as Node)) { setMenuOpen(false); setMoreOpen(false); } };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [menuOpen]);
+  }, [menuOpen, moreOpen]);
 
   useEffect(() => {
     const sectionObserver = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && setActive(entry.target.id)), { rootMargin: "-30% 0px -60% 0px" });
@@ -249,7 +251,7 @@ export default function Portfolio() {
     <a className="skip-link" href="#main-content" inert={dialogOpen}>Skip to main content</a>
     
     <ScrollProgress />
-    <header ref={headerRef} className="site-header" inert={dialogOpen} onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="RKP home">RKP<span aria-hidden="true">.</span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => requestAnimationFrame(() => setMenuOpen(false))}>{item.label}<i aria-hidden="true" /></a>)}</nav><div className="header-actions"><a className="header-contact" href="#contact">Hire Me <ArrowUpRight size={15} aria-hidden="true" /></a><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
+    <header ref={headerRef} className="site-header" inert={dialogOpen} onBlur={(event) => { const next = event.relatedTarget as Node | null; if ((menuOpen || moreOpen) && next && !event.currentTarget.contains(next)) { setMenuOpen(false); setMoreOpen(false); } }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan.</span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{headerNavItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => { setMenuOpen(false); setMoreOpen(false); }}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a><div className="more-nav-item"><button className={moreOpen || active === "leetcode" || active === "github" ? "more-trigger active" : "more-trigger"} type="button" aria-expanded={moreOpen} aria-controls="more-menu" onClick={() => setMoreOpen((open) => !open)}>More <ChevronDown size={15} aria-hidden="true" /></button><div id="more-menu" className={moreOpen ? "more-menu is-open" : "more-menu"}>{[{ id: "leetcode", label: "LeetCode" }, { id: "github", label: "GitHub" }].map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => { setMoreOpen(false); setMenuOpen(false); }}>{item.label}</a>)}</div></div></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
     <main id="main-content" tabIndex={-1} inert={dialogOpen}>
     <section className="hero section-shell" id="top">
       <div ref={headerSentinelRef} className="header-sentinel" aria-hidden="true" />
