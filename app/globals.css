@@ -1,5 +1,58 @@
 @import "tailwindcss";
 
+/* Task 1 redesign foundation: light portfolio theme and reusable section labels. */
+:root {
+  --ink: #1b2033;
+  --panel: #ffffff;
+  --panel-raised: #ffffff;
+  --muted: #5a6270;
+  --soft: #5a6270;
+  --line: #e1e4e8;
+  --violet: #3b57c4;
+  --teal: #3b57c4;
+  --font-mono: var(--font-inter), Inter, Arial, sans-serif;
+}
+
+body {
+  background: #f7f7f5;
+  color: #1b2033;
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
+}
+
+.section-label {
+  align-items: center;
+  color: #1b2033;
+  display: flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 12px;
+  letter-spacing: .12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.section-label::before {
+  background: #3b57c4;
+  content: "";
+  display: block;
+  height: 28px;
+  width: 5px;
+}
+
+.section-label > span { color: #5a6270; margin-right: 0; }
+.section-label:nth-of-type(2n)::before { background: #d9534f; }
+.section-label:nth-of-type(3n)::before { background: #4b9b72; }
+.section-label:nth-of-type(4n)::before { background: #8659b5; }
+.section-label:nth-of-type(5n)::before { background: #d68a31; }
+
+.button-primary { background: #3b57c4; color: #fff; }
+.header-contact, .text-link, .main-nav a.active { color: #3b57c4; }
+.wordmark span, .hero h1 span, h2 span { color: #3b57c4; }
+
+@media (max-width: 900px) {
+  .section-label { margin-bottom: 28px; }
+}
+
 :root {
   --ink: #08090d;
   --panel: #10131a;
@@ -561,3 +614,28 @@ button.palette-item { background: none; border: 0; color: inherit; cursor: point
   .scene-shell:hover { filter: none; }
   .skills-cloud-item { opacity: .8; }
 }
+
+/* Light theme tokens take precedence over the legacy section rules during the global pass. */
+:root {
+  --ink: #1b2033;
+  --panel: #ffffff;
+  --panel-raised: #ffffff;
+  --muted: #5a6270;
+  --soft: #5a6270;
+  --line: #e1e4e8;
+  --violet: #3b57c4;
+  --teal: #3b57c4;
+  --font-mono: var(--font-inter), Inter, Arial, sans-serif;
+}
+
+body { background: #f7f7f5; color: #1b2033; font-family: var(--font-inter), Inter, Arial, sans-serif; }
+.section-label { align-items: center; color: #1b2033; display: flex; font-size: 12px; font-weight: 800; gap: 12px; letter-spacing: .12em; line-height: 1; text-transform: uppercase; }
+.section-label::before { background: #3b57c4; content: ""; display: block; height: 28px; width: 5px; }
+.section-label > span { color: #5a6270; margin-right: 0; }
+.section-label:nth-of-type(2n)::before { background: #d9534f; }
+.section-label:nth-of-type(3n)::before { background: #4b9b72; }
+.section-label:nth-of-type(4n)::before { background: #8659b5; }
+.section-label:nth-of-type(5n)::before { background: #d68a31; }
+.button-primary { background: #3b57c4; color: #fff; }
+.header-contact, .text-link, .main-nav a.active { color: #3b57c4; }
+.wordmark span, .hero h1 span, h2 span { color: #3b57c4; }
