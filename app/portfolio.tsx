@@ -2,20 +2,20 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { AnimatePresence, motion, MotionConfig, useReducedMotion, useScroll } from "framer-motion";
-import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, Download, ExternalLink, FileText, GitBranch, Mail, Menu, X } from "lucide-react";
-import { createElement, useCallback, useEffect, useId, useRef, useState } from "react";
-import { buildNotes, education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, skillProjectLinks, thinkingPrinciples, type Project, type SkillName } from "../data/site";
-import SkillsCloud from "../components/skills-cloud";
-import SystemMap from "../components/system-map";
+import { AnimatePresence, motion, MotionConfig, useScroll } from "framer-motion";
+import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, Download, FileText, GitBranch, Mail, Menu, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, type Project } from "../data/site";
+import { getExperienceIcon } from "../components/experience-icons";
+import { getSkillIcon } from "../components/skill-icons";
 import { getTechIcon } from "../components/tech-icons";
 import { GitHubIcon, LeetCodeIcon, LinkedInIcon } from "../components/brand-icons";
 
 // The whole Resume Explorer (2D view, 3D scene) is fetched only when it is first opened.
 const ResumeExplorer = dynamic(() => import("../components/resume-explorer"), { ssr: false, loading: () => <div className="overlay explorer-overlay" aria-hidden="true" /> });
-const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "leetcode", label: "LeetCode" }, { id: "github", label: "GitHub" }, { id: "skills", label: "Skills" }, { id: "contact", label: "Contact" }];
-const headerNavItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "contact", label: "Contact" }];
-const defaultSectionOrder = ["about", "projects", "experience", "thinking", "systemMap", "leetcode", "github", "notes", "skills", "contact"] as const;
+// Navbar links and page sections share one order.
+const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "skills", label: "Skills" }, { id: "leetcode", label: "LeetCode" }, { id: "contact", label: "Contact" }];
+const defaultSectionOrder = ["about", "projects", "experience", "skills", "leetcode", "contact"] as const;
 
 // "Computer Science Student" leads; the rest of the role sits on its own line so wrapping never strands a bullet.
 const heroRole = personalInfo.role.split(" • ");
@@ -53,32 +53,30 @@ function ProjectVisual({ project }: { project: Project }) {
   </div>;
 }
 
-// Skills with related projects are disclosure buttons (tap, click, or Enter/Space toggles the list; mouse hover still previews it).
-// Skills without related projects are plain labels, so there are no buttons that do nothing.
-function SkillChip({ item }: { item: SkillName }) {
-  const [open, setOpen] = useState(false);
-  const relatedId = useId();
-  const related = skillProjectLinks[item];
-  const icon = createElement(getTechIcon(item), { size: 14, strokeWidth: 1.5, "aria-hidden": true });
-  if (!related) return <span className="skill-chip">{icon}{item}</span>;
-  return <span className="skill-chip-wrap">
-    <button className="skill-chip" type="button" aria-expanded={open} aria-controls={relatedId} onClick={() => setOpen((value) => !value)} onBlur={() => setOpen(false)} onKeyDown={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); } }}>{icon}{item}</button>
-    <span className="skill-related" id={relatedId}>{related.join(" · ")}</span>
-  </span>;
-}
-
 // Scroll-linked motion value: updates the bar's transform without React renders or layout.
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
   return <motion.div className="scroll-progress" style={{ scaleX: scrollYProgress }} aria-hidden="true" />;
 }
 
+type LiveLeetCodeStats = {
+  ranking?: number | null;
+  totalSolved?: number | null;
+  easy?: { solved?: number | null; total?: number | null };
+  medium?: { solved?: number | null; total?: number | null };
+  hard?: { solved?: number | null; total?: number | null };
+  updatedAt?: string;
+};
+
+// Keep the hand-maintained value unless the live one is a real number, so a partial response never blanks a stat.
+const pick = (live: number | null | undefined, fallback: number) => typeof live === "number" ? live : fallback;
+const formatDate = (date: string, timeZone?: string) => new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone });
+
+// Renders the snapshot from data/site.ts first, then swaps in live numbers from /api/leetcode when they arrive.
 function LeetCodeSection() {
-  const reduced = useReducedMotion();
   const [stats, setStats] = useState(leetcodeProfile);
-  const [count, setCount] = useState(0);
+  const [updatedLabel, setUpdatedLabel] = useState(() => formatDate(leetcodeProfile.lastUpdated, "UTC"));
   const [visible, setVisible] = useState(false);
-  const [statsError, setStatsError] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -86,24 +84,23 @@ function LeetCodeSection() {
     const loadStats = async () => {
       try {
         const response = await fetch("/api/leetcode", { cache: "no-store" });
-        if (!response.ok) throw new Error("Stats unavailable");
-        const data = await response.json();
-        if (active) {
-          setStats((current) => ({
-            ...current,
-            totalSolved: data.totalSolved,
-            ranking: data.ranking,
-            easySolved: data.easy?.solved ?? null,
-            easyTotal: data.easy?.total ?? null,
-            mediumSolved: data.medium?.solved ?? null,
-            mediumTotal: data.medium?.total ?? null,
-            hardSolved: data.hard?.solved ?? null,
-            hardTotal: data.hard?.total ?? null,
-          }));
-          setStatsError(false);
-        }
+        if (!response.ok) return;
+        const data = await response.json() as LiveLeetCodeStats;
+        if (!active) return;
+        setStats((current) => ({
+          ...current,
+          ranking: pick(data.ranking, current.ranking),
+          totalSolved: pick(data.totalSolved, current.totalSolved),
+          easySolved: pick(data.easy?.solved, current.easySolved),
+          easyTotal: pick(data.easy?.total, current.easyTotal),
+          mediumSolved: pick(data.medium?.solved, current.mediumSolved),
+          mediumTotal: pick(data.medium?.total, current.mediumTotal),
+          hardSolved: pick(data.hard?.solved, current.hardSolved),
+          hardTotal: pick(data.hard?.total, current.hardTotal),
+        }));
+        if (data.updatedAt) setUpdatedLabel(formatDate(data.updatedAt));
       } catch {
-        if (active && leetcodeProfile.totalSolved === null) setStatsError(true);
+        // Network failure: the snapshot from data/site.ts stays on screen.
       }
     };
     loadStats();
@@ -123,58 +120,57 @@ function LeetCodeSection() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!visible || reduced || stats.totalSolved === null || count >= stats.totalSolved) return;
-    const step = Math.max(1, Math.ceil(stats.totalSolved / 28));
-    const timer = window.setTimeout(() => setCount((current) => Math.min(current + step, stats.totalSolved ?? current)), 34);
-    return () => window.clearTimeout(timer);
-  }, [count, reduced, stats.totalSolved, visible]);
-
-  const solvedLabel = stats.totalSolved === null ? "—" : (reduced ? stats.totalSolved : count).toLocaleString();
-  const totalAvailable = [stats.easyTotal, stats.mediumTotal, stats.hardTotal].every((value) => value !== null)
-    ? (stats.easyTotal ?? 0) + (stats.mediumTotal ?? 0) + (stats.hardTotal ?? 0)
-    : null;
-  const ringProgress = stats.totalSolved !== null && totalAvailable ? Math.min(stats.totalSolved / totalAvailable, 1) : 0;
+  const totalAvailable = stats.easyTotal + stats.mediumTotal + stats.hardTotal;
+  const ringProgress = totalAvailable > 0 ? Math.min(stats.totalSolved / totalAvailable, 1) : 0;
+  const ringRadius = 52, ringLength = 2 * Math.PI * ringRadius;
   const difficultyStats = [
-    { label: "Easy", solved: stats.easySolved, total: stats.easyTotal, color: "easy" },
-    { label: "Medium", solved: stats.mediumSolved, total: stats.mediumTotal, color: "medium" },
-    { label: "Hard", solved: stats.hardSolved, total: stats.hardTotal, color: "hard" },
+    { label: "Easy", solved: stats.easySolved, total: stats.easyTotal, tone: "easy" },
+    { label: "Medium", solved: stats.mediumSolved, total: stats.mediumTotal, tone: "medium" },
+    { label: "Hard", solved: stats.hardSolved, total: stats.hardTotal, tone: "hard" },
   ] as const;
 
-  return <section ref={sectionRef} className="section-shell leetcode-section" id="leetcode" data-reveal="up">
-    <div className="section-label"><span>06</span> LeetCode</div>
-    <div className="leetcode-content">
-      <div className="leetcode-heading"><h2>Problem-solving<br /><span>practice.</span></h2><p>Live stats from my LeetCode profile.</p></div>
-      <div className="leetcode-dashboard" data-reveal="up" data-reveal-delay={100}>
-        <div className="leetcode-dashboard-top">
-          <div className="leetcode-profile-name"><span className="leetcode-mark" aria-hidden="true">LC</span><strong>@{stats.username}</strong></div>
-          <div className="leetcode-ranking"><small>GLOBAL RANKING</small><strong aria-label={stats.ranking === null ? "Global ranking unavailable" : `Global ranking ${stats.ranking.toLocaleString()}`}>{stats.ranking === null ? "—" : `#${stats.ranking.toLocaleString()}`}</strong></div>
-        </div>
-        <div className="leetcode-dashboard-body">
-          <div className="leetcode-ring-column">
-            <div className={`leetcode-ring${visible ? " is-visible" : ""}`} style={{ ["--leetcode-progress" as string]: ringProgress }} role="img" aria-label={stats.totalSolved === null ? "Total solved unavailable" : `${stats.totalSolved} of ${totalAvailable ?? "available"} problems solved`}>
-              <div><strong>{solvedLabel}</strong><span>TOTAL SOLVED</span></div>
-            </div>
-            <small>{statsError ? "STATS TEMPORARILY UNAVAILABLE" : "LIVE PROFILE SNAPSHOT"}</small>
-          </div>
-          <div className="leetcode-difficulty-summary">
-            <span>DIFFICULTY BREAKDOWN</span>
-            {difficultyStats.map(({ label, solved, total, color }) => {
-              const available = solved !== null && total !== null;
-              const percentage = available && total > 0 ? (solved / total) * 100 : 0;
-              return <div className={`leetcode-difficulty leetcode-difficulty-${color}`} key={label}><div><span>{label}</span><b>{available ? `${solved} / ${total}` : "— / —"}</b></div><div className="leetcode-bar" role="progressbar" aria-label={`${label} difficulty progress${available ? `: ${solved} of ${total}` : ": unavailable"}`} aria-valuenow={available ? solved : 0} aria-valuemin={0} aria-valuemax={total ?? 0}><i style={{ width: visible ? `${percentage}%` : "0%" }} /></div></div>;
-            })}
-          </div>
-        </div>
+  return <section ref={sectionRef} className="section-shell leetcode-section" id="leetcode" aria-labelledby="leetcode-heading" data-reveal="up">
+    <div className="leetcode-header">
+      <p className="leetcode-eyebrow">LeetCode</p>
+      <h2 className="section-label" id="leetcode-heading">A little problem-solving</h2>
+    </div>
+    <div className="leetcode-layout">
+      <div className="leetcode-intro">
+        <p>Problem-solving practice, with statistics from my LeetCode profile.</p>
+        <p className="leetcode-handle"><LeetCodeIcon size={20} />@{stats.username}</p>
+        <a className="leetcode-button" href={stats.profileUrl} target="_blank" rel="noopener noreferrer">View LeetCode profile<ArrowRight size={16} aria-hidden="true" /></a>
       </div>
-      <a className="leetcode-profile-link" href={stats.profileUrl} target="_blank" rel="noopener noreferrer">View Profile on LeetCode <ArrowUpRight size={14} aria-hidden="true" /></a>
+      <div className="leetcode-card">
+        <div className="leetcode-card-top">
+          <p className="leetcode-user"><LeetCodeIcon size={26} />{stats.username}</p>
+          <p className="leetcode-rank"><span className="sr-only">Global ranking </span>#{stats.ranking.toLocaleString("en-US")}</p>
+        </div>
+        <div className="leetcode-card-body">
+          <div className="leetcode-total" role="img" aria-label={`${stats.totalSolved} of ${totalAvailable} problems solved`}>
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r={ringRadius} className="leetcode-total-track" />
+              <circle cx="60" cy="60" r={ringRadius} className="leetcode-total-fill" strokeDasharray={ringLength} strokeDashoffset={visible ? ringLength * (1 - ringProgress) : ringLength} />
+            </svg>
+            <strong aria-hidden="true">{stats.totalSolved.toLocaleString("en-US")}</strong>
+          </div>
+          <div className="leetcode-rows">{difficultyStats.map(({ label, solved, total, tone }) => {
+            const percentage = total > 0 ? (solved / total) * 100 : 0;
+            return <div className="leetcode-row" data-tone={tone} key={label}>
+              <div><span>{label}</span><b>{solved} / {total}</b></div>
+              <div className="leetcode-track" role="progressbar" aria-label={`${label}: ${solved} of ${total} solved`} aria-valuenow={solved} aria-valuemin={0} aria-valuemax={total}><i style={{ width: visible ? `${percentage}%` : "0%" }} /></div>
+            </div>;
+          })}</div>
+        </div>
+        <p className="leetcode-updated">Last updated {updatedLabel}</p>
+      </div>
     </div>
   </section>;
 }
 
 export default function Portfolio() {
+  const [openRoles, setOpenRoles] = useState<Record<string, boolean>>({});
   const [openProjectDetails, setOpenProjectDetails] = useState<Record<string, boolean>>({});
-  const [menuOpen, setMenuOpen] = useState(false), [moreOpen, setMoreOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
   const [active, setActive] = useState("about");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const headerRef = useRef<HTMLElement>(null);
@@ -208,16 +204,15 @@ export default function Portfolio() {
 
   // Close the mobile menu on a tap outside the header.
   useEffect(() => {
-    if (!menuOpen && !moreOpen) return;
-    const onPointerDown = (event: PointerEvent) => { if (!headerRef.current?.contains(event.target as Node)) { setMenuOpen(false); setMoreOpen(false); } };
+    if (!menuOpen) return;
+    const onPointerDown = (event: PointerEvent) => { if (!headerRef.current?.contains(event.target as Node)) setMenuOpen(false); };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [menuOpen, moreOpen]);
+  }, [menuOpen]);
 
   useEffect(() => {
     const sectionObserver = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && setActive(entry.target.id)), { rootMargin: "-30% 0px -60% 0px" });
-    // Sections without a nav link are observed too, so the highlight clears there instead of leaving the previous section lit.
-    [...navItems.map(({ id }) => id), "how-i-think", "system-map", "notes"].forEach((id) => { const el = document.getElementById(id); if (el) sectionObserver.observe(el); });
+    navItems.forEach(({ id }) => { const el = document.getElementById(id); if (el) sectionObserver.observe(el); });
     // The fixed header gets its backdrop once the top-of-page sentinel scrolls away; a class toggle, so no React render.
     const header = headerRef.current, sentinel = headerSentinelRef.current;
     const headerObserver = header && sentinel ? new IntersectionObserver(([entry]) => header.classList.toggle("is-scrolled", !entry.isIntersecting)) : null;
@@ -312,13 +307,52 @@ export default function Portfolio() {
         </article>;
       })}</div>
     </section>,
-    experience: <section key="experience" className="section-shell split-section experience-section" id="experience" data-reveal="up"><div className="section-label"><span>03</span> Experience</div><div className="experience-content"><h2>A timeline of<br /><span>technical support.</span></h2><div className="timeline"><div className="timeline-progress" data-reveal="line" aria-hidden="true" /><div className="timeline-items">{experience.map((item, index) => <article className="timeline-item" data-reveal="up" data-reveal-delay={150 + index * 80} key={item.title}><div className="timeline-marker" aria-hidden="true" /><div><small>{item.date}</small><h3>{item.title}</h3><p className="timeline-company">{item.company}</p><ul>{item.responsibilities.map((line) => <li key={line}>{line}</li>)}</ul><div className="tag-list">{item.tools.map((tool) => <span key={tool}>{tool}</span>)}</div></div></article>)}</div></div></div></section>,
-    thinking: <section key="thinking" className="section-shell split-section thinking-section" id="how-i-think" aria-labelledby="how-i-think-title" data-reveal="up"><div className="section-label"><span>04</span> How I Think</div><div className="thinking-content"><h2 id="how-i-think-title">How I approach<br /><span>problems.</span></h2><ol className="thinking-list">{thinkingPrinciples.map((principle) => <li className="thinking-item" key={principle.number}><span className="thinking-number" aria-hidden="true">{principle.number}</span><div><h3>{principle.title}</h3><p>{principle.body}</p><p className="thinking-source"><b>{principle.source}</b> {principle.detail}</p></div></li>)}</ol></div></section>,
-    systemMap: <section key="systemMap" className="section-shell split-section map-section" id="system-map" aria-labelledby="system-map-title" data-reveal="up"><div className="section-label"><span>05</span> System Map</div><div className="map-content"><h2 id="system-map-title">How it all<br /><span>connects.</span></h2><p className="map-intro">How the tools I use connect to the things I&apos;ve built.</p><SystemMap /></div></section>,
+    experience: <section key="experience" className="section-shell experience-section" id="experience" aria-labelledby="experience-heading" data-reveal="up">
+      <h2 className="section-label" id="experience-heading">Experience</h2>
+      <div className="experience-roles">{experience.map((item) => {
+        const isUta = item.title === "Student Technical Assistant";
+        const roleOpen = Boolean(openRoles[item.title]);
+        const extraId = `experience-extra-${isUta ? "uta" : "nrcs"}`;
+        return <article className="experience-role" key={item.title}>
+          <div className="experience-logo">{isUta
+            ? <Image src="/images/uta-logo.png" alt="UTA logo" width={44} height={44} />
+            : <Image src="/images/nrcs-logo.png" alt="Nepal Red Cross Society logo" width={44} height={44} />}</div>
+          <div className="experience-role-body">
+            <div className="experience-title-row"><h3>{item.title}</h3><p className="experience-date">{item.date}</p></div>
+            <p className="experience-organization">{isUta ? "Office of Information Technology, University of Texas at Arlington · Arlington, TX" : "Nepal Red Cross Society · Nepal"}</p>
+            <p className="experience-summary">{isUta ? "Support classroom and lab technology across hardware, software, and AV systems." : "Provide front-line IT support, workstation setup, website updates, and accessible PDF support."}</p>
+            <ul className="experience-tools" aria-label="Skills and tools">{item.tools.map((tool) => {
+              const ToolIcon = getExperienceIcon(tool);
+              return <li key={tool}><ToolIcon size={16} aria-hidden="true" />{tool}</li>;
+            })}</ul>
+            <button className="experience-toggle" type="button" aria-expanded={roleOpen} aria-controls={extraId} onClick={() => setOpenRoles((roles) => ({ ...roles, [item.title]: !roles[item.title] }))}>
+              {roleOpen ? "Show less" : "Learn more about this role"}<ChevronDown size={16} aria-hidden="true" />
+            </button>
+            <div className="experience-extra" id={extraId} data-open={roleOpen} aria-hidden={!roleOpen} inert={!roleOpen}>
+              <div><div className="experience-panel">
+                <p>{item.explanation}</p>
+                <ul className="experience-bullets">{item.responsibilities.map((line) => <li key={line}>{line}</li>)}</ul>
+              </div></div>
+            </div>
+          </div>
+        </article>;
+      })}</div>
+    </section>,
     leetcode: <LeetCodeSection key="leetcode" />,
-    github: <section key="github" className="section-shell github-section" id="github" data-reveal="up"><div className="section-label"><span>07</span> GitHub / Development</div><div className="github-content"><div className="github-heading"><h2>Source code<br /><span>on GitHub.</span></h2><p>Public repositories for the projects featured above.</p><a className="button-primary" href={siteLinks.github} target="_blank" rel="noopener noreferrer">Visit GitHub <ArrowUpRight size={16} aria-hidden="true" /></a></div><div className="github-console"><div className="github-console-head"><span><i aria-hidden="true" /> PASWANRAJU / SELECTED WORK</span><span>PUBLIC PROFILE</span></div><div className="github-repos">{projects.filter((project) => project.github).map((project) => <a className="github-repo" href={project.github} target="_blank" rel="noopener noreferrer" key={project.title}><span className="github-repo-index" aria-hidden="true">{project.number}</span><span><strong>{project.title}</strong><small>{project.description}</small></span><ExternalLink size={14} aria-hidden="true" /></a>)}</div><div className="github-console-foot"><span>PROFILE / {siteLinks.github.replace("https://github.com/", "")}</span><span>{projects.filter((project) => project.github).length} FEATURED REPOSITORIES</span></div></div></div></section>,
-    notes: <section key="notes" className="section-shell split-section notes-section" id="notes" data-reveal="up"><div className="section-label"><span>08</span> Build Notes</div><div className="notes-content"><h2>What I&apos;ve been<br /><span>working on.</span></h2><ol className="build-log">{buildNotes.map((group) => <li className="build-log-group" key={group.when}>{group.dateTime ? <time dateTime={group.dateTime}>{group.when}</time> : <span className="build-log-when">{group.when}</span>}<ul>{group.entries.map((entry) => <li key={entry.title}><strong>{entry.title}</strong> {entry.text}</li>)}</ul></li>)}</ol></div></section>,
-    skills: <section key="skills" className="section-shell split-section skills-section" id="skills" data-reveal="up"><div className="section-label"><span>09</span> Skills &amp; Tools</div><div className="skills-content"><h2>Skills &amp;<br /><span>tools.</span></h2><p className="skills-note">What I&apos;ve used hands-on in projects and coursework, and what I&apos;m still learning.</p><SkillsCloud /><div className="skill-grid">{skillGroups.map((group, index) => <div className={`skill-group skill-group-card${group.state === "Hands-on" ? "" : " is-learning"}`} data-reveal="up" data-reveal-delay={index * 80} key={group.label}><small>{group.label}</small><span className="skill-state">{group.state}</span><div>{group.items.map((item) => <SkillChip item={item} key={item} />)}</div></div>)}</div></div></section>,
+    skills: <section key="skills" className="section-shell skills-section" id="skills" aria-labelledby="skills-heading" data-reveal="up">
+      <h2 className="section-label" id="skills-heading">Skills</h2>
+      <p className="skills-intro">The tools I&apos;ve used in my projects and coursework, and what I&apos;m learning next.</p>
+      <div className="skills-groups">{skillGroups.map((group) => {
+        const learning = group.state === "In progress";
+        return <div className={`skills-group${learning ? " is-learning" : ""}`} key={group.label}>
+          <h3>{group.label}{learning && <span className="skills-badge">In progress</span>}</h3>
+          <ul className="skills-items">{group.items.map((item) => {
+            const { icon: SkillIcon, color } = getSkillIcon(item);
+            return <li key={item}><SkillIcon size={18} color={color} aria-hidden="true" />{item}</li>;
+          })}</ul>
+        </div>;
+      })}</div>
+    </section>,
     contact: <section key="contact" className="contact-section" id="contact"><div className="section-shell contact-inner"><div className="contact-intro"><div className="section-label"><span>10</span> Get In Touch</div><h2>Let&apos;s<br /><span>talk.</span></h2><p>Happy to talk about any of these projects, collaborations, or opportunities.</p><div className="contact-links"><a href={siteLinks.email}><Mail size={17} aria-hidden="true" /><span>{personalInfo.email}</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer"><BriefcaseBusiness size={17} aria-hidden="true" /><span>LinkedIn</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer"><GitBranch size={17} aria-hidden="true" /><span>GitHub</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer"><Code2 size={17} aria-hidden="true" /><span>LeetCode</span><ArrowUpRight size={13} aria-hidden="true" /></a></div></div><div className="contact-cta"><span className="contact-cta-label">EMAIL</span><a className="contact-cta-email" href={siteLinks.email}>{personalInfo.email}</a><p>Email is the best way to reach me. The button below opens your email app with a new message addressed to me.</p><div className="contact-cta-actions"><a className="button-primary" href={siteLinks.email}><Mail size={16} aria-hidden="true" />Email Me <ArrowUpRight size={16} aria-hidden="true" /></a><button className="contact-copy" type="button" onClick={copyEmail}>{copyState === "copied" ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}{copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy unavailable" : "Copy address"}</button></div><p className="sr-only" role="status">{copyState === "copied" ? "Email address copied to clipboard." : copyState === "failed" ? "Couldn't copy automatically. Select the email address instead." : ""}</p></div></div></section>,
   };
   // reducedMotion="user": Framer skips transform animations (modals, chip hover lift) for reduced-motion users.
@@ -327,7 +361,7 @@ export default function Portfolio() {
     <a className="skip-link" href="#main-content" inert={dialogOpen}>Skip to main content</a>
     
     <ScrollProgress />
-    <header ref={headerRef} className="site-header" inert={dialogOpen} onBlur={(event) => { const next = event.relatedTarget as Node | null; if ((menuOpen || moreOpen) && next && !event.currentTarget.contains(next)) { setMenuOpen(false); setMoreOpen(false); } }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{headerNavItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => { setMenuOpen(false); setMoreOpen(false); }}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a><div className="more-nav-item"><button className={moreOpen || active === "leetcode" || active === "github" ? "more-trigger active" : "more-trigger"} type="button" aria-expanded={moreOpen} aria-controls="more-menu" onClick={() => setMoreOpen((open) => !open)}>More <ChevronDown size={15} aria-hidden="true" /></button><div id="more-menu" className={moreOpen ? "more-menu is-open" : "more-menu"}>{[{ id: "leetcode", label: "LeetCode" }, { id: "github", label: "GitHub" }].map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => { setMoreOpen(false); setMenuOpen(false); }}>{item.label}</a>)}</div></div></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
+    <header ref={headerRef} className="site-header" inert={dialogOpen} onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => setMenuOpen(false)}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
     <main id="main-content" tabIndex={-1} inert={dialogOpen}>
     <section className="hero section-shell" id="top">
       <div ref={headerSentinelRef} className="header-sentinel" aria-hidden="true" />

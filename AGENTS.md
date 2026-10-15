@@ -37,3 +37,4 @@ Three.js background, dark theme, terminal button, ⌘K command menu, recruiter m
 - After each task, summarize which files changed.
 - Run `npm run build` before finishing to confirm nothing is broken.
 - Never commit files in `design-reference/`.
+- Never run git commit, git push, or any other git command that changes history. I handle all commits myself.
