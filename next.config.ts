@@ -12,6 +12,8 @@ const lanAddresses = Object.values(networkInterfaces())
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: lanAddresses,
+  // Hide the on-screen dev indicator; compile and runtime errors still show in the dev overlay.
+  devIndicators: false,
 };
 
 export default nextConfig;

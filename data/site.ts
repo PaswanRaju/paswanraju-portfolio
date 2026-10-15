@@ -3,7 +3,7 @@ export const personalInfo = {
   shortName: "Raju Paswan",
   role: "Computer Science Student • Software Developer • Builder",
   intro: "Computer Science student at UTA exploring software engineering, AI, cloud systems, full-stack development, and systems programming.",
-  email: "paswanrajukumar890@gmail.com",
+  email: "raju@paswanraju.com",
 } as const;
 
 export const siteLinks = {
@@ -29,14 +29,16 @@ export const experience = [
     title: "Student Technical Assistant",
     company: "UTA Office of Information Technology",
     date: "Sep 2026 – Present",
-    responsibilities: ["Troubleshoot classroom and lab technology across hardware, software, AV systems, and printers.", "Document technical issues.", "Escalate complex cases when necessary."],
+    explanation: "As part of UTA's Office of Information Technology, I help keep classroom and lab technology running so instructors and students can focus on teaching and learning.",
+    responsibilities: ["Troubleshoot classroom and lab technology across hardware, software, AV systems, and printers.", "Document technical issues and their resolutions to support consistent follow-up.", "Escalate complex cases to the appropriate OIT teams when necessary."],
     tools: ["Hardware", "Software", "AV systems", "Printers"],
   },
   {
     title: "IT Support Volunteer",
     company: "Nepal Red Cross Society / Nepal",
     date: "May 2023 – Jul 2023",
-    responsibilities: ["Front-line IT support.", "Windows/Linux workstation setup.", "Hardware/software/network diagnostics.", "Website updates using HTML/CSS/JavaScript.", "Accessible PDF support."],
+    explanation: "As a volunteer with the Nepal Red Cross Society, I supported staff with day-to-day IT needs and helped maintain the organization's systems and website.",
+    responsibilities: ["Provided front-line IT support for staff.", "Set up and maintained Windows and Linux workstations.", "Diagnosed hardware, software, and network issues.", "Updated the organization's website using HTML, CSS, and JavaScript.", "Supported staff in creating accessible PDF documents."],
     tools: ["Windows", "Linux", "Networking", "HTML/CSS", "JavaScript", "Accessibility"],
   },
 ] as const;
@@ -44,15 +46,17 @@ export const experience = [
 export type LeetCodeProfile = {
   username: string;
   profileUrl: string;
-  totalSolved: number | null;
-  totalQuestions: number | null;
-  easySolved: number | null;
-  easyTotal: number | null;
-  mediumSolved: number | null;
-  mediumTotal: number | null;
-  hardSolved: number | null;
-  hardTotal: number | null;
-  ranking: number | null;
+  // Fallback snapshot shown until (or instead of) live stats from /api/leetcode. Update by hand from the profile page.
+  lastUpdated: string;
+  totalSolved: number;
+  totalQuestions: number;
+  easySolved: number;
+  easyTotal: number;
+  mediumSolved: number;
+  mediumTotal: number;
+  hardSolved: number;
+  hardTotal: number;
+  ranking: number;
   language: string;
   languageSolved: number;
   topicActivity: readonly { label: string; count: number; group: "Advanced" | "Intermediate" | "Fundamental" }[];
@@ -61,15 +65,16 @@ export type LeetCodeProfile = {
 export const leetcodeProfile: LeetCodeProfile = {
   username: "raju_algo",
   profileUrl: "https://leetcode.com/u/raju_algo/",
-  totalSolved: null,
-  totalQuestions: null,
-  easySolved: null,
-  easyTotal: null,
-  mediumSolved: null,
-  mediumTotal: null,
-  hardSolved: null,
-  hardTotal: null,
-  ranking: null,
+  lastUpdated: "2026-10-14",
+  totalSolved: 53,
+  totalQuestions: 4082,
+  easySolved: 25,
+  easyTotal: 971,
+  mediumSolved: 25,
+  mediumTotal: 2128,
+  hardSolved: 3,
+  hardTotal: 983,
+  ranking: 2672163,
   language: "C",
   languageSolved: 53,
   topicActivity: [
@@ -95,67 +100,11 @@ export const projects = [
 ] as const;
 
 export const skillGroups = [
-  { label: "Languages", state: "Hands-on", items: ["Python", "Java", "JavaScript", "C", "SQL"] },
-  { label: "Databases", state: "Hands-on", items: ["PostgreSQL", "MySQL"] },
-  { label: "Tools / Systems", state: "Hands-on", items: ["Git", "Docker", "Linux", "GDB", "QEMU"] },
-  { label: "Web / Backend", state: "Hands-on", items: ["Spring Boot", "React", "Next.js"] },
-  { label: "Currently learning", state: "In progress", items: ["AI / ML", "Cloud Systems"] },
+  { label: "Languages", state: "Hands-on", items: ["Python", "C", "ARM Assembly", "JavaScript"] },
+  { label: "AI & Data", state: "Hands-on", items: ["Pandas", "scikit-learn", "Matplotlib", "TF-IDF", "AI / ML"] },
+  { label: "Systems & Tools", state: "Hands-on", items: ["Linux", "Git", "GDB", "QEMU", "Make"] },
+  { label: "Web", state: "Hands-on", items: ["HTML", "CSS", "Next.js"] },
+  { label: "Currently learning", state: "In progress", items: ["Java", "SQL", "PostgreSQL", "MySQL", "Docker", "AWS", "Spring Boot", "React", "FastAPI", "LangChain", "ChromaDB", "Redis", "GitHub Actions", "Cloud Systems"] },
 ] as const;
 
 export type SkillName = (typeof skillGroups)[number]["items"][number];
-
-// Keys must be skill names and values completed project titles, so a typo fails type-checking instead of silently hiding the link.
-export const skillProjectLinks: Partial<Record<SkillName, readonly Extract<Project, { status: "Completed" }>["title"][]>> = {
-  Python: ["OperatorLoop"],
-  JavaScript: ["3D Tic Tac Toe"],
-  C: ["AArch64 Teaching Kernel Lab"],
-  Git: ["OperatorLoop", "AArch64 Teaching Kernel Lab"],
-  GDB: ["AArch64 Teaching Kernel Lab"],
-  QEMU: ["AArch64 Teaching Kernel Lab"],
-  "AI / ML": ["OperatorLoop"],
-};
-
-// System Map. Skills and their projects come straight from each project's `tags`; this only adds which
-// engineering area a tag serves in that project. Keys are type-checked against the project's real tags.
-// Git is left off on purpose: it's in every project's workflow, not tied to one area.
-export const engineeringAreas = [
-  { id: "frontend", label: "Frontend" },
-  { id: "ai-data", label: "AI / Data" },
-  { id: "retrieval", label: "Retrieval" },
-  { id: "systems", label: "Systems & debugging" },
-  { id: "backend", label: "Backend & APIs" },
-  { id: "data-layer", label: "Data layer" },
-  { id: "deployment", label: "Deployment" },
-] as const;
-export type AreaId = (typeof engineeringAreas)[number]["id"];
-type ProjectAreaMap = { [P in Project as P["title"]]: Partial<Record<P["tags"][number], AreaId>> };
-export const systemMapAreas: ProjectAreaMap = {
-  "3D Tic Tac Toe": { HTML: "frontend", CSS: "frontend", JavaScript: "frontend" },
-  OperatorLoop: { Python: "ai-data", Pandas: "ai-data", "scikit-learn": "ai-data", Matplotlib: "ai-data", "TF-IDF": "retrieval" },
-  "AArch64 Teaching Kernel Lab": { C: "systems", "ARM Assembly": "systems", QEMU: "systems", GDB: "systems", Make: "systems" },
-  "MavRAG Course Assistant": { Python: "retrieval", FastAPI: "backend", LangChain: "retrieval", ChromaDB: "retrieval", Docker: "deployment", AWS: "deployment" },
-  "Cloud-Native Task Platform": { Java: "backend", "Spring Boot": "backend", React: "frontend", MySQL: "data-layer", Redis: "data-layer", Docker: "deployment", AWS: "deployment", "GitHub Actions": "deployment" },
-};
-
-// "How I Think": each principle points back to work already described on this page (projects or experience).
-export const thinkingPrinciples = [
-  { number: "01", title: "Start simple", body: "I like getting the basic version working first, then adding complexity when there's an actual reason for it.", source: "From 3D Tic Tac Toe", detail: "It shipped as plain HTML, CSS, and JavaScript. A Player vs Computer mode comes next, not first." },
-  { number: "02", title: "Debug what's actually happening", body: "Working with QEMU and GDB taught me to inspect registers, execution state, and program behavior instead of guessing.", source: "From the AArch64 lab", detail: "Stepping through the boot one instruction at a time." },
-  { number: "03", title: "Measure before guessing", body: "With OperatorLoop, testing the pipeline across many runs exposed problems that weren't obvious from a few examples.", source: "From OperatorLoop", detail: "Evaluated across 160 synthetic runs with 28 injected anomalies." },
-  { number: "04", title: "Build for the person using it", body: "Technical correctness matters, but the software still needs to make sense to the person using it.", source: "From IT support", detail: "Front-line IT support and accessible PDF support at the Nepal Red Cross Society, and classroom technology support at UTA." },
-] as const;
-
-// A plain log of what I've been building. Dates come from git history and the GitHub repos; undated work is left out.
-export const buildNotes = [
-  { when: "Now", dateTime: null, entries: [
-    { title: "MavRAG Course Assistant", text: "Planning the ingestion, retrieval, and source-citation pieces." },
-    { title: "Cloud-Native Task Platform", text: "Planning the Spring Boot API, auth, and deployment setup." },
-  ] },
-  { when: "Oct 2026", dateTime: "2026-10", entries: [
-    { title: "This portfolio", text: "Built it with Next.js and Three.js, then spent a round on rendering performance, first load, keyboard navigation, and mobile accessibility." },
-    { title: "3D Tic Tac Toe", text: "Published the game on GitHub Pages." },
-  ] },
-  { when: "Sep 2026", dateTime: "2026-09", entries: [
-    { title: "OperatorLoop", text: "Built the pipeline, evaluated it on 160 synthetic runs, and fixed a retrieval mismatch and an over-eager safety check." },
-  ] },
-] as const;

@@ -1,57 +1,45 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
-import { AnimatePresence, motion, MotionConfig, useReducedMotion, useScroll } from "framer-motion";
-import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Check, Code2, Command, Copy, ExternalLink, GitBranch, Mail, Menu, Search, Terminal, X } from "lucide-react";
-import { createElement, Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
-import { buildNotes, currentFocus, education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, skillProjectLinks, thinkingPrinciples, type Project, type SkillName } from "../data/site";
-import { usePointerTilt } from "../lib/motion";
-import { useModalDialog } from "../lib/use-modal-dialog";
-import SkillsCloud from "../components/skills-cloud";
-import SystemMap from "../components/system-map";
+import { motion, useScroll } from "framer-motion";
+import { ArrowRight, ArrowUp, ArrowUpRight, ChevronDown, Download, FileText, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, type Project } from "../data/site";
+import ContactForm from "../components/contact-form";
+import { getExperienceIcon } from "../components/experience-icons";
+import { getSkillIcon } from "../components/skill-icons";
 import { getTechIcon } from "../components/tech-icons";
-import HeroScene from "./scene";
+import { GitHubIcon, LeetCodeIcon, LinkedInIcon } from "../components/brand-icons";
 
-// The whole Resume Explorer (2D view, 3D scene) is fetched only when it is first opened.
-const ResumeExplorer = dynamic(() => import("../components/resume-explorer"), { ssr: false, loading: () => <div className="overlay explorer-overlay" aria-hidden="true" /> });
-const Atmosphere = dynamic(() => import("./atmosphere"), { ssr: false, loading: () => <div className="atmosphere-fallback" aria-hidden="true" /> });
-const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "leetcode", label: "LeetCode" }, { id: "github", label: "GitHub" }, { id: "skills", label: "Skills" }, { id: "contact", label: "Contact" }];
-// Recruiter Mode: same sections, evidence first. Nav order always matches the rendered section order.
-const recruiterNavOrder = ["experience", "projects", "skills", "about", "leetcode", "github", "contact"];
-const navFor = (recruiter: boolean) => (recruiter ? recruiterNavOrder.map((id) => navItems.find((item) => item.id === id)!) : navItems);
-const defaultSectionOrder = ["about", "projects", "experience", "thinking", "systemMap", "leetcode", "github", "notes", "skills", "contact"] as const;
-const recruiterSectionOrder = ["experience", "projects", "skills", "systemMap", "about", "thinking", "leetcode", "github", "contact", "notes"] as const;
-type PaletteCommand = { label: string; href: string } | { label: string; action: "toggle-recruiter" | "explore-resume" };
-const commandsFor = (recruiter: boolean): PaletteCommand[] => [
-  { label: "Home", href: "#top" },
-  ...navFor(recruiter).map((x) => ({ label: x.label, href: `#${x.id}` })),
-  { label: "How I Think", href: "#how-i-think" },
-  { label: "System Map", href: "#system-map" },
-  ...(recruiter ? [] : [{ label: "Build Notes", href: "#notes" }]),
-  { label: "Toggle Recruiter Mode", action: "toggle-recruiter" as const },
-  { label: "Resume", href: siteLinks.resume },
-  { label: "Explore Resume", action: "explore-resume" as const },
-  { label: "GitHub Profile", href: siteLinks.github },
-  { label: "LinkedIn", href: siteLinks.linkedin },
-  { label: "Email Me", href: siteLinks.email },
-];
+// Navbar links and page sections share one order.
+const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "skills", label: "Skills" }, { id: "leetcode", label: "LeetCode" }, { id: "contact", label: "Contact" }];
+const defaultSectionOrder = ["about", "projects", "experience", "skills", "leetcode", "contact"] as const;
 
-// "Computer Science Student" leads; the rest of the role sits on its own line so wrapping never strands a bullet.
-const heroRole = personalInfo.role.split(" • ");
 
-function TiltCard({ children, featured, planned, index, still }: { children: React.ReactNode; featured: boolean; planned: boolean; index: number; still: boolean }) {
-  const tilt = usePointerTilt({ perspective: 1100, maxRotateX: 3, maxRotateY: 3, glowVars: ["--card-x", "--card-y"] });
-  return <motion.article className={`project-card-tilt${featured ? " project-card-featured" : ""}${planned ? " project-card-planned" : ""}`} style={still ? undefined : tilt.style} data-reveal="up" data-reveal-delay={index * 80} onPointerMove={still ? undefined : tilt.onPointerMove} onPointerLeave={still ? undefined : tilt.onPointerLeave}>{children}</motion.article>;
-}
+const projectHighlights = {
+  OperatorLoop: {
+    category: "AI / DATA",
+    summary: "Human-in-the-loop decision support for manufacturing sensor data.",
+    points: ["Evaluated across 160 synthetic runs with 28 injected anomalies.", "Matched exact process conditions before TF-IDF similarity ranking.", "Validated safety constraints and logged operator approvals, edits, and rejections."],
+  },
+  "AArch64 Teaching Kernel Lab": {
+    category: "SYSTEMS",
+    summary: "A bare-metal 64-bit ARM teaching kernel for Raspberry Pi 3.",
+    points: ["Inspected ELF sections and symbols with nm, objdump, and binary tools.", "Validated boot flow in QEMU/GDB, stepping through instructions and registers.", "Used Make, shell scripts, and Git/GitHub for reproducible builds and debugging."],
+  },
+  "3D Tic Tac Toe": {
+    category: "FRONTEND",
+    summary: "A browser Tic Tac Toe game with a 3D-style board.",
+    points: ["Animated moves, win and draw detection, and score tracking.", "Built with browser-native HTML, CSS, and JavaScript.", "Deployed as a playable browser game on GitHub Pages."],
+  },
+} satisfies Record<Extract<Project, { status: "Completed" }>["title"], { category: string; summary: string; points: string[] }>;
 
-function ProjectVisual({ project, recruiter }: { project: Project; recruiter: boolean }) {
+function ProjectVisual({ project }: { project: Project }) {
   if (project.visual === "data") return <figure className="project-visual visual-data project-figure">
     <span className="project-number" aria-hidden="true">{project.number}</span>
     <Image src="/images/projects/operatorloop-vibration.png" alt="OperatorLoop chart: vibration across 160 synthetic manufacturing runs, with vibration anomalies marked above the 1.2 g threshold." width={1400} height={636} sizes="(max-width: 900px) 100vw, 640px" />
     <figcaption><span aria-hidden="true">{project.number} · </span>Vibration plot from the OperatorLoop repo · 160 synthetic runs</figcaption>
   </figure>;
-  if (recruiter) return null;
   return <div className={`project-visual visual-${project.visual}`} aria-hidden="true">
     <span className="project-number">{project.number}</span>
     {project.visual === "game" && <div className="game-board">{["X", "", "O", "", "X", "", "O", "", ""].map((v, i) => <span key={i}>{v}</span>)}</div>}
@@ -61,58 +49,30 @@ function ProjectVisual({ project, recruiter }: { project: Project; recruiter: bo
   </div>;
 }
 
-// Skills with related projects are disclosure buttons (tap, click, or Enter/Space toggles the list; mouse hover still previews it).
-// Skills without related projects are plain labels, so there are no buttons that do nothing.
-function SkillChip({ item }: { item: SkillName }) {
-  const [open, setOpen] = useState(false);
-  const relatedId = useId();
-  const related = skillProjectLinks[item];
-  const icon = createElement(getTechIcon(item), { size: 14, strokeWidth: 1.5, "aria-hidden": true });
-  if (!related) return <span className="skill-chip">{icon}{item}</span>;
-  return <span className="skill-chip-wrap">
-    <button className="skill-chip" type="button" aria-expanded={open} aria-controls={relatedId} onClick={() => setOpen((value) => !value)} onBlur={() => setOpen(false)} onKeyDown={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); } }}>{icon}{item}</button>
-    <span className="skill-related" id={relatedId}>{related.join(" · ")}</span>
-  </span>;
-}
-
-function CommandPalette({ onClose, recruiter, onToggleRecruiter, onExploreResume }: { onClose: (restoreFocus: boolean) => void; recruiter: boolean; onToggleRecruiter: () => void; onExploreResume: () => void }) {
-  const [query, setQuery] = useState("");
-  const paletteRef = useRef<HTMLDivElement>(null);
-  useModalDialog(paletteRef);
-  const normalized = query.trim().toLowerCase();
-  const commands = commandsFor(recruiter);
-  const results = normalized ? commands.filter(({ label }) => label.toLowerCase().includes(normalized)) : commands;
-  // Arrow keys move between the search field and the results; Tab is trapped by useModalDialog.
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-    const items = [...(paletteRef.current?.querySelectorAll<HTMLElement>("input, .palette-item") ?? [])];
-    const index = items.indexOf(document.activeElement as HTMLElement);
-    event.preventDefault();
-    items[event.key === "ArrowDown" ? Math.min(index + 1, items.length - 1) : Math.max(index - 1, 0)]?.focus();
-  };
-  return <div className="overlay" onClick={() => onClose(true)}><motion.div ref={paletteRef} className={normalized ? "palette is-filtering" : "palette"} role="dialog" aria-modal="true" aria-label="Command palette" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => e.stopPropagation()} onKeyDown={onKeyDown}><div className="palette-search"><Search size={16} aria-hidden="true" /><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key !== "Enter") return; e.preventDefault(); paletteRef.current?.querySelector<HTMLElement>(".palette-item")?.click(); }} placeholder="Jump to..." aria-label="Search commands" aria-describedby="palette-hint" /></div><p className="sr-only" id="palette-hint">Type to filter. Use the arrow keys to move through results and Enter to open.</p>{results.map((command) => { if ("action" in command) return command.action === "explore-resume" ? <button key={command.action} type="button" className="palette-item" aria-haspopup="dialog" onClick={onExploreResume}>{command.label}<ArrowUpRight size={13} aria-hidden="true" /></button> : <button key={command.action} type="button" className="palette-item" aria-pressed={recruiter} onClick={() => { onToggleRecruiter(); onClose(true); }}>{command.label}<span className="palette-item-state" aria-hidden="true">{recruiter ? "On" : "Off"}</span></button>; const { label, href } = command; const external = href.startsWith("http") || href === siteLinks.resume; return <a key={href} className="palette-item" href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} onClick={() => onClose(!href.startsWith("#"))}>{label}<ArrowUpRight size={13} aria-hidden="true" /></a>; })}{results.length === 0 ? <p className="palette-empty" role="status">No matching commands</p> : <p className="sr-only" role="status">{normalized ? `${results.length} matching ${results.length === 1 ? "command" : "commands"}` : ""}</p>}</motion.div></div>;
-}
-
-// Owns its input state so typing re-renders only the modal, not the whole page.
-function TerminalModal({ output, onRun, onClose }: { output: string[]; onRun: (value: string) => void; onClose: () => void }) {
-  const [input, setInput] = useState("");
-  const dialogRef = useRef<HTMLDivElement>(null);
-  useModalDialog(dialogRef);
-  return <div className="overlay" onClick={onClose}><motion.div ref={dialogRef} className="terminal-modal" role="dialog" aria-modal="true" aria-labelledby="terminal-title" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => e.stopPropagation()}><div className="terminal-head"><span id="terminal-title">RKP terminal</span><button type="button" onClick={onClose} aria-label="Close terminal"><X size={16} aria-hidden="true" /></button></div><div className="terminal-output" role="log" aria-live="polite">{output.map((line, i) => <pre key={i}>{line}</pre>)}</div><form onSubmit={(e) => { e.preventDefault(); onRun(input); setInput(""); }}><span aria-hidden="true">&gt;</span><input autoFocus value={input} onChange={(e) => setInput(e.target.value)} aria-label="Terminal command" aria-describedby="terminal-hint" autoComplete="off" autoCapitalize="none" spellCheck={false} /></form><p className="sr-only" id="terminal-hint">Type help and press Enter to list commands. Press Escape to close.</p></motion.div></div>;
-}
-
 // Scroll-linked motion value: updates the bar's transform without React renders or layout.
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
   return <motion.div className="scroll-progress" style={{ scaleX: scrollYProgress }} aria-hidden="true" />;
 }
 
+type LiveLeetCodeStats = {
+  ranking?: number | null;
+  totalSolved?: number | null;
+  easy?: { solved?: number | null; total?: number | null };
+  medium?: { solved?: number | null; total?: number | null };
+  hard?: { solved?: number | null; total?: number | null };
+  updatedAt?: string;
+};
+
+// Keep the hand-maintained value unless the live one is a real number, so a partial response never blanks a stat.
+const pick = (live: number | null | undefined, fallback: number) => typeof live === "number" ? live : fallback;
+const formatDate = (date: string, timeZone?: string) => new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone });
+
+// Renders the snapshot from data/site.ts first, then swaps in live numbers from /api/leetcode when they arrive.
 function LeetCodeSection() {
-  const reduced = useReducedMotion();
   const [stats, setStats] = useState(leetcodeProfile);
-  const [count, setCount] = useState(0);
+  const [updatedLabel, setUpdatedLabel] = useState(() => formatDate(leetcodeProfile.lastUpdated, "UTC"));
   const [visible, setVisible] = useState(false);
-  const [statsError, setStatsError] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -120,24 +80,23 @@ function LeetCodeSection() {
     const loadStats = async () => {
       try {
         const response = await fetch("/api/leetcode", { cache: "no-store" });
-        if (!response.ok) throw new Error("Stats unavailable");
-        const data = await response.json();
-        if (active) {
-          setStats((current) => ({
-            ...current,
-            totalSolved: data.totalSolved,
-            ranking: data.ranking,
-            easySolved: data.easy?.solved ?? null,
-            easyTotal: data.easy?.total ?? null,
-            mediumSolved: data.medium?.solved ?? null,
-            mediumTotal: data.medium?.total ?? null,
-            hardSolved: data.hard?.solved ?? null,
-            hardTotal: data.hard?.total ?? null,
-          }));
-          setStatsError(false);
-        }
+        if (!response.ok) return;
+        const data = await response.json() as LiveLeetCodeStats;
+        if (!active) return;
+        setStats((current) => ({
+          ...current,
+          ranking: pick(data.ranking, current.ranking),
+          totalSolved: pick(data.totalSolved, current.totalSolved),
+          easySolved: pick(data.easy?.solved, current.easySolved),
+          easyTotal: pick(data.easy?.total, current.easyTotal),
+          mediumSolved: pick(data.medium?.solved, current.mediumSolved),
+          mediumTotal: pick(data.medium?.total, current.mediumTotal),
+          hardSolved: pick(data.hard?.solved, current.hardSolved),
+          hardTotal: pick(data.hard?.total, current.hardTotal),
+        }));
+        if (data.updatedAt) setUpdatedLabel(formatDate(data.updatedAt));
       } catch {
-        if (active && leetcodeProfile.totalSolved === null) setStatsError(true);
+        // Network failure: the snapshot from data/site.ts stays on screen.
       }
     };
     loadStats();
@@ -157,99 +116,71 @@ function LeetCodeSection() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!visible || reduced || stats.totalSolved === null || count >= stats.totalSolved) return;
-    const step = Math.max(1, Math.ceil(stats.totalSolved / 28));
-    const timer = window.setTimeout(() => setCount((current) => Math.min(current + step, stats.totalSolved ?? current)), 34);
-    return () => window.clearTimeout(timer);
-  }, [count, reduced, stats.totalSolved, visible]);
-
-  const solvedLabel = stats.totalSolved === null ? "—" : (reduced ? stats.totalSolved : count).toLocaleString();
-  const totalAvailable = [stats.easyTotal, stats.mediumTotal, stats.hardTotal].every((value) => value !== null)
-    ? (stats.easyTotal ?? 0) + (stats.mediumTotal ?? 0) + (stats.hardTotal ?? 0)
-    : null;
-  const ringProgress = stats.totalSolved !== null && totalAvailable ? Math.min(stats.totalSolved / totalAvailable, 1) : 0;
+  const totalAvailable = stats.easyTotal + stats.mediumTotal + stats.hardTotal;
+  const ringProgress = totalAvailable > 0 ? Math.min(stats.totalSolved / totalAvailable, 1) : 0;
+  const ringRadius = 52, ringLength = 2 * Math.PI * ringRadius;
   const difficultyStats = [
-    { label: "Easy", solved: stats.easySolved, total: stats.easyTotal, color: "easy" },
-    { label: "Medium", solved: stats.mediumSolved, total: stats.mediumTotal, color: "medium" },
-    { label: "Hard", solved: stats.hardSolved, total: stats.hardTotal, color: "hard" },
+    { label: "Easy", solved: stats.easySolved, total: stats.easyTotal, tone: "easy" },
+    { label: "Medium", solved: stats.mediumSolved, total: stats.mediumTotal, tone: "medium" },
+    { label: "Hard", solved: stats.hardSolved, total: stats.hardTotal, tone: "hard" },
   ] as const;
 
-  return <section ref={sectionRef} className="section-shell leetcode-section" id="leetcode" data-reveal="up">
-    <div className="section-label"><span>06</span> LeetCode</div>
-    <div className="leetcode-content">
-      <div className="leetcode-heading"><h2>Problem-solving<br /><span>practice.</span></h2><p>Live stats from my LeetCode profile.</p></div>
-      <div className="leetcode-dashboard" data-reveal="up" data-reveal-delay={100}>
-        <div className="leetcode-dashboard-top">
-          <div className="leetcode-profile-name"><span className="leetcode-mark" aria-hidden="true">LC</span><strong>@{stats.username}</strong></div>
-          <div className="leetcode-ranking"><small>GLOBAL RANKING</small><strong aria-label={stats.ranking === null ? "Global ranking unavailable" : `Global ranking ${stats.ranking.toLocaleString()}`}>{stats.ranking === null ? "—" : `#${stats.ranking.toLocaleString()}`}</strong></div>
-        </div>
-        <div className="leetcode-dashboard-body">
-          <div className="leetcode-ring-column">
-            <div className={`leetcode-ring${visible ? " is-visible" : ""}`} style={{ ["--leetcode-progress" as string]: ringProgress }} role="img" aria-label={stats.totalSolved === null ? "Total solved unavailable" : `${stats.totalSolved} of ${totalAvailable ?? "available"} problems solved`}>
-              <div><strong>{solvedLabel}</strong><span>TOTAL SOLVED</span></div>
-            </div>
-            <small>{statsError ? "STATS TEMPORARILY UNAVAILABLE" : "LIVE PROFILE SNAPSHOT"}</small>
-          </div>
-          <div className="leetcode-difficulty-summary">
-            <span>DIFFICULTY BREAKDOWN</span>
-            {difficultyStats.map(({ label, solved, total, color }) => {
-              const available = solved !== null && total !== null;
-              const percentage = available && total > 0 ? (solved / total) * 100 : 0;
-              return <div className={`leetcode-difficulty leetcode-difficulty-${color}`} key={label}><div><span>{label}</span><b>{available ? `${solved} / ${total}` : "— / —"}</b></div><div className="leetcode-bar" role="progressbar" aria-label={`${label} difficulty progress${available ? `: ${solved} of ${total}` : ": unavailable"}`} aria-valuenow={available ? solved : 0} aria-valuemin={0} aria-valuemax={total ?? 0}><i style={{ width: visible ? `${percentage}%` : "0%" }} /></div></div>;
-            })}
-          </div>
-        </div>
+  return <section ref={sectionRef} className="section-shell leetcode-section" id="leetcode" aria-labelledby="leetcode-heading" data-reveal="up">
+    <div className="leetcode-header">
+      <p className="leetcode-eyebrow">LeetCode</p>
+      <h2 className="section-label" id="leetcode-heading">A little problem-solving</h2>
+    </div>
+    <div className="leetcode-layout">
+      <div className="leetcode-intro">
+        <p>Problem-solving practice, with statistics from my LeetCode profile.</p>
+        <p className="leetcode-handle"><LeetCodeIcon size={20} />@{stats.username}</p>
+        <a className="leetcode-button" href={stats.profileUrl} target="_blank" rel="noopener noreferrer">View LeetCode profile<ArrowRight size={16} aria-hidden="true" /></a>
       </div>
-      <a className="leetcode-profile-link" href={stats.profileUrl} target="_blank" rel="noopener noreferrer">View Profile on LeetCode <ArrowUpRight size={14} aria-hidden="true" /></a>
+      <div className="leetcode-card">
+        <div className="leetcode-card-top">
+          <p className="leetcode-user"><LeetCodeIcon size={26} />{stats.username}</p>
+          <p className="leetcode-rank"><span className="sr-only">Global ranking </span>#{stats.ranking.toLocaleString("en-US")}</p>
+        </div>
+        <div className="leetcode-card-body">
+          <div className="leetcode-total" role="img" aria-label={`${stats.totalSolved} of ${totalAvailable} problems solved`}>
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r={ringRadius} className="leetcode-total-track" />
+              <circle cx="60" cy="60" r={ringRadius} className="leetcode-total-fill" strokeDasharray={ringLength} strokeDashoffset={visible ? ringLength * (1 - ringProgress) : ringLength} />
+            </svg>
+            <strong aria-hidden="true">{stats.totalSolved.toLocaleString("en-US")}</strong>
+          </div>
+          <div className="leetcode-rows">{difficultyStats.map(({ label, solved, total, tone }) => {
+            const percentage = total > 0 ? (solved / total) * 100 : 0;
+            return <div className="leetcode-row" data-tone={tone} key={label}>
+              <div><span>{label}</span><b>{solved} / {total}</b></div>
+              <div className="leetcode-track" role="progressbar" aria-label={`${label}: ${solved} of ${total} solved`} aria-valuenow={solved} aria-valuemin={0} aria-valuemax={total}><i style={{ width: visible ? `${percentage}%` : "0%" }} /></div>
+            </div>;
+          })}</div>
+        </div>
+        <p className="leetcode-updated">Last updated {updatedLabel}</p>
+      </div>
     </div>
   </section>;
 }
 
 export default function Portfolio() {
-  const [menuOpen, setMenuOpen] = useState(false), [palette, setPalette] = useState(false), [terminalOpen, setTerminalOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
-  const [terminalOutput, setTerminalOutput] = useState<string[]>([]), [expanded, setExpanded] = useState<string | null>(null);
+  const [openRoles, setOpenRoles] = useState<Record<string, boolean>>({});
+  const [openProjectDetails, setOpenProjectDetails] = useState<Record<string, boolean>>({});
+  const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("about");
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  // Recruiter Mode always starts off (no persistence): a stored preference would either mismatch hydration or reorder the page after first paint.
-  const [recruiter, setRecruiter] = useState(false), [modeTouched, setModeTouched] = useState(false);
-  const firstModeEffect = useRef(true);
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
   const headerSentinelRef = useRef<HTMLDivElement>(null);
-  const dialogOpenerRef = useRef<HTMLElement | null>(null);
-  const dialogOpen = palette || terminalOpen || explorerOpen;
-
-  // Remember what had focus before a dialog opens, so closing it can put focus back there.
-  const openDialog = useCallback((which: "palette" | "terminal" | "explorer") => {
-    dialogOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setMenuOpen(false);
-    if (which === "palette") setPalette(true); else if (which === "terminal") setTerminalOpen(true); else setExplorerOpen(true);
-  }, []);
-  const closeDialogs = useCallback((restoreFocus = true) => {
-    setPalette(false);
-    setTerminalOpen(false);
-    setExplorerOpen(false);
-    // After the commit that removes `inert` from the page, so the opener is focusable again.
-    if (restoreFocus) requestAnimationFrame(() => dialogOpenerRef.current?.focus({ preventScroll: true }));
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        if (terminalOpen || explorerOpen) return;
-        e.preventDefault();
-        if (palette) closeDialogs(); else openDialog("palette");
-        return;
-      }
       if (e.key !== "Escape") return;
-      if (palette || terminalOpen || explorerOpen) closeDialogs();
-      else if (menuOpen) { setMenuOpen(false); menuToggleRef.current?.focus(); }
+      if (menuOpen) { setMenuOpen(false); menuToggleRef.current?.focus(); }
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [closeDialogs, explorerOpen, menuOpen, openDialog, palette, terminalOpen]);
+  }, [menuOpen]);
 
   // Close the mobile menu on a tap outside the header.
   useEffect(() => {
@@ -261,23 +192,13 @@ export default function Portfolio() {
 
   useEffect(() => {
     const sectionObserver = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && setActive(entry.target.id)), { rootMargin: "-30% 0px -60% 0px" });
-    // Sections without a nav link are observed too, so the highlight clears there instead of leaving the previous section lit.
-    [...navItems.map(({ id }) => id), "how-i-think", "system-map", "notes"].forEach((id) => { const el = document.getElementById(id); if (el) sectionObserver.observe(el); });
+    navItems.forEach(({ id }) => { const el = document.getElementById(id); if (el) sectionObserver.observe(el); });
     // The fixed header gets its backdrop once the top-of-page sentinel scrolls away; a class toggle, so no React render.
     const header = headerRef.current, sentinel = headerSentinelRef.current;
     const headerObserver = header && sentinel ? new IntersectionObserver(([entry]) => header.classList.toggle("is-scrolled", !entry.isIntersecting)) : null;
     if (headerObserver && sentinel) headerObserver.observe(sentinel);
     return () => { sectionObserver.disconnect(); headerObserver?.disconnect(); };
   }, []);
-
-  const toggleRecruiter = useCallback(() => { setRecruiter((value) => !value); setModeTouched(true); setActive(""); }, []);
-  // Mode is exposed on <html> for CSS. Turning it on reveals everything at once (no scroll fades) and starts from the top of the reordered page.
-  useEffect(() => {
-    const root = document.documentElement;
-    if (recruiter) { root.dataset.mode = "recruiter"; root.removeAttribute("data-js-reveal"); } else delete root.dataset.mode;
-    if (firstModeEffect.current) { firstModeEffect.current = false; return; }
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [recruiter]);
 
   const toggleMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     const opening = !menuOpen;
@@ -286,67 +207,166 @@ export default function Portfolio() {
     // Taps leave focus alone: WebKit doesn't focus tapped links, so moved focus would only get in the way.
     if (opening && event.detail === 0) requestAnimationFrame(() => navRef.current?.querySelector<HTMLAnchorElement>("a")?.focus());
   };
-  const runTerminal = (value: string) => { const command = value.trim().toLowerCase(); const responses: Record<string, string> = { help: "whoami  projects  skills  experience  contact  clear", whoami: "Raju Kumar Paswan\nComputer Science @ UTA\nSoftware Developer • Builder", projects: "OperatorLoop · AArch64 Teaching Kernel Lab · 3D Tic Tac Toe", skills: "Software engineering · AI/ML · cloud · systems · full-stack", experience: "Student Technical Assistant — Academic Technology, UTA OIT", contact: personalInfo.email, clear: "" }; setTerminalOutput((old) => command === "clear" ? [] : [...old, `> ${value}`, responses[command] ?? "Command not found. Type help for supported commands."]); };
-  const copyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText(personalInfo.email);
-      setCopyState("copied");
-    } catch {
-      setCopyState("failed");
-    }
-    window.setTimeout(() => setCopyState("idle"), 2400);
+  // Smooth unless the visitor prefers reduced motion; keyboard focus returns to the start of the page too.
+  const backToTop = () => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    document.getElementById("main-content")?.focus({ preventScroll: true });
   };
-  const exploreButton = <button type="button" className="text-link explore-link" aria-haspopup="dialog" onClick={() => openDialog("explorer")}>Explore Resume</button>;
-  // From the explorer: close it, then jump to the Projects section.
-  const viewProjects = () => { closeDialogs(false); requestAnimationFrame(() => { location.hash = "projects"; }); };
-  const resumeLink = <a className="text-link resume-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">Resume <ArrowUpRight size={16} aria-hidden="true" /></a>;
   const sections = {
-    about: <section key="about" className="section-shell split-section" id="about" data-reveal="up"><div className="section-label"><span>01</span> About</div><div className="about-content"><h2>Learning by<br /><span>building.</span></h2><div className="about-grid"><div className="about-copy"><p className="large-copy">I&apos;m a Computer Science student at The University of Texas at Arlington with a minor in Data Science. I like working on different parts of software, from low-level systems and debugging to AI projects, cloud infrastructure, and interactive web applications. I usually learn best by building things, breaking them, figuring out why they broke, and improving them.</p><div className="currently"><strong>Currently</strong>{currentFocus.map((item) => <span key={item}>{item}</span>)}</div></div><div className="portrait-wrap"><div className="portrait-frame"><Image className="portrait" src="/images/raju-profile.jpg" alt="Portrait of Raju Kumar Paswan" width={280} height={350} priority={false} /></div></div></div><div className="education-panels"><div className="education-panel education-primary"><small>Education</small><strong>{education.school}</strong><span>{education.degree}<br />{education.minor}</span></div><div className="education-panel"><small>Coursework</small><div className="education-list">{education.coursework.map((item) => <span key={item}>{item}</span>)}</div></div><div className="education-panel"><small>Organizations</small><div className="education-list">{education.organizations.map((item) => <span key={item}>{item}</span>)}</div></div></div></div></section>,
-    projects: <section key="projects" className="work-section" id="projects"><div className="section-shell"><div className="section-heading"><div><div className="section-label"><span>02</span> Projects</div><h2>Selected systems<br /><span>and experiments.</span></h2></div><p>Built, documented, and still being explored.</p></div><div className="project-grid">{projects.map((project, index) => { const caseStudyId = `case-study-${project.number}`; const isOpen = expanded === project.title; const groupLabel = recruiter && (index === 0 ? "Completed" : project.status !== "Completed" && projects[index - 1].status === "Completed" ? "In progress" : null); return <Fragment key={project.title}>{groupLabel && <p className="project-group-label">{groupLabel}</p>}<TiltCard featured={index < 2} planned={project.status !== "Completed"} index={index} still={recruiter}><ProjectVisual project={project} recruiter={recruiter} /><div className="project-info"><div className="project-title-row"><div><h3>{project.title}</h3><p>{project.description}</p>{project.note && <p className="project-note"><b>{project.note.label}</b> {project.note.text}</p>}</div><span className={`status ${project.status === "Completed" ? "complete" : ""}`}>{project.status}</span></div><div className="project-meta"><div className="tag-list">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{(project.github || project.liveDemo) && <div className="project-links">{project.github && <a href={project.github} target="_blank" rel="noopener noreferrer">GitHub<span className="sr-only"> repository for {project.title}</span> <ExternalLink size={12} aria-hidden="true" /></a>}{project.liveDemo && <a href={project.liveDemo} target="_blank" rel="noopener noreferrer">Live Demo<span className="sr-only"> of {project.title}</span> <ExternalLink size={12} aria-hidden="true" /></a>}</div>}</div><button className="details-button" type="button" aria-expanded={isOpen} aria-controls={caseStudyId} onClick={() => setExpanded(isOpen ? null : project.title)}>Case study<span className="sr-only">: {project.title}</span> <span aria-hidden="true">{isOpen ? "−" : "+"}</span></button><div className="case-study" id={caseStudyId} hidden={!isOpen}><p><b>Problem</b>{project.problem}</p><p><b>Approach</b>{project.approach}</p><p><b>Engineering decisions</b>{project.decisions}</p><p><b>Outcome / current status</b>{project.outcome}</p></div></div></TiltCard></Fragment>; })}</div></div></section>,
-    experience: <section key="experience" className="section-shell split-section experience-section" id="experience" data-reveal="up"><div className="section-label"><span>03</span> Experience</div><div className="experience-content"><h2>A timeline of<br /><span>technical support.</span></h2><div className="timeline"><div className="timeline-progress" data-reveal="line" aria-hidden="true" /><div className="timeline-items">{experience.map((item, index) => <article className="timeline-item" data-reveal="up" data-reveal-delay={150 + index * 80} key={item.title}><div className="timeline-marker" aria-hidden="true" /><div><small>{item.date}</small><h3>{item.title}</h3><p className="timeline-company">{item.company}</p><ul>{item.responsibilities.map((line) => <li key={line}>{line}</li>)}</ul><div className="tag-list">{item.tools.map((tool) => <span key={tool}>{tool}</span>)}</div></div></article>)}</div></div></div></section>,
-    thinking: <section key="thinking" className="section-shell split-section thinking-section" id="how-i-think" aria-labelledby="how-i-think-title" data-reveal="up"><div className="section-label"><span>04</span> How I Think</div><div className="thinking-content"><h2 id="how-i-think-title">How I approach<br /><span>problems.</span></h2><ol className="thinking-list">{thinkingPrinciples.map((principle) => <li className="thinking-item" key={principle.number}><span className="thinking-number" aria-hidden="true">{principle.number}</span><div><h3>{principle.title}</h3><p>{principle.body}</p><p className="thinking-source"><b>{principle.source}</b> {principle.detail}</p></div></li>)}</ol></div></section>,
-    systemMap: <section key="systemMap" className="section-shell split-section map-section" id="system-map" aria-labelledby="system-map-title" data-reveal="up"><div className="section-label"><span>05</span> System Map</div><div className="map-content"><h2 id="system-map-title">How it all<br /><span>connects.</span></h2><p className="map-intro">How the tools I use connect to the things I&apos;ve built.</p><SystemMap /></div></section>,
+    about: <section key="about" className="section-shell about-section" id="about" aria-labelledby="about-heading" data-reveal="up">
+      <h2 className="section-label" id="about-heading">About me</h2>
+      <div className="about-columns">
+        <div className="about-details">
+          <p className="about-lead">I&apos;m Raju Kumar Paswan, a Computer Science student at the University of Texas at Arlington, minoring in Data Science. I&apos;m interested in how software works all the way down, from the instructions a processor runs to the applications people use every day.</p>
+          <p>At UTA&apos;s Office of Information Technology, I work as a Student Technical Assistant, supporting classroom and lab technology across hardware, software, and AV systems. Outside of work, I build projects that pull me into new areas, from a decision-support pipeline for manufacturing data to a bare-metal ARM kernel lab. I&apos;m currently looking for Summer 2027 software engineering internships.</p>
+          <h3>What I&apos;m studying</h3>
+          <ul className="about-pills">{education.coursework.map((item) => <li key={item}>{item}</li>)}</ul>
+          <h3>Organizations</h3>
+          <ul className="about-pills about-organizations">{education.organizations.map((item) => <li key={item}>{item}</li>)}</ul>
+        </div>
+        <div className="about-cards">
+          <article className="about-card about-resume">
+            <h3><FileText size={24} aria-hidden="true" />My resume</h3>
+            <p>Want the quick version? My education, experience, and projects in one PDF.</p>
+            <div className="about-resume-actions">
+              <a className="about-download" href={siteLinks.resume} download>Download PDF <Download size={16} aria-hidden="true" /></a>
+              <a className="about-preview" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">Preview resume <ArrowRight size={16} aria-hidden="true" /></a>
+            </div>
+          </article>
+          <article className="about-card about-education">
+            <div className="about-education-title">
+              <span className="about-uta-badge"><Image src="/images/uta-logo.png" alt="UTA logo" width={44} height={44} /></span>
+              <div><p className="about-education-label">Education</p><h3>{education.degreeShort}</h3><p>{education.minor}</p></div>
+            </div>
+            <p>{education.school}</p>
+            <dl><div><dt>Expected graduation:</dt><dd>May 2028</dd></div><div><dt>Location:</dt><dd>Arlington, Texas</dd></div></dl>
+          </article>
+        </div>
+      </div>
+    </section>,
+    projects: <section key="projects" className="section-shell projects-section" id="projects" aria-labelledby="projects-heading">
+      <h2 className="section-label" id="projects-heading">Projects</h2>
+      <p className="projects-intro">Built, documented, and still being explored.</p>
+      <div className="projects-cards">{projects.filter((project) => project.status === "Completed").map((project) => {
+        const highlights = projectHighlights[project.title];
+        const detailsOpen = Boolean(openProjectDetails[project.number]);
+        const detailsId = `project-details-${project.number}`;
+        return <article className="projects-card" data-project={project.visual} key={project.title}>
+          <ProjectVisual project={project} />
+          <div className="projects-card-body">
+            <span className="projects-category">{highlights.category}</span>
+            <h3>{project.title}</h3>
+            <p className="projects-description">{highlights.summary}</p>
+            <ul className="projects-points">{highlights.points.map((point) => <li key={point}>{point}</li>)}</ul>
+            <ul className="projects-stack" aria-label="Tech stack">{project.tags.map((tag) => {
+              const TechIcon = getTechIcon(tag);
+              return <li key={tag}><TechIcon size={16} aria-hidden="true" />{tag}</li>;
+            })}</ul>
+            <div className="projects-actions">
+              {project.github && <a className="projects-source" href={project.github} target="_blank" rel="noopener noreferrer"><GitHubIcon size={16} />Source code<span className="sr-only"> for {project.title}</span><ArrowRight size={16} aria-hidden="true" /></a>}
+              {project.github && project.liveDemo && <a className="projects-demo" href={project.liveDemo} target="_blank" rel="noopener noreferrer">Live demo<span className="sr-only"> of {project.title}</span><ArrowUpRight size={16} aria-hidden="true" /></a>}
+              <button className="projects-details-toggle" type="button" aria-expanded={detailsOpen} aria-controls={detailsId} onClick={() => setOpenProjectDetails((open) => ({ ...open, [project.number]: !open[project.number] }))}>Engineering details<span className="sr-only">: {project.title}</span><ChevronDown size={16} aria-hidden="true" /></button>
+            </div>
+            <div className="projects-case-study" id={detailsId} hidden={!detailsOpen}>
+              <p>{project.description}</p>
+              {project.note && <p><strong>{project.note.label}</strong>{project.note.text}</p>}
+              <p><strong>Problem</strong>{project.problem}</p>
+              <p><strong>Approach</strong>{project.approach}</p>
+              <p><strong>Engineering decisions</strong>{project.decisions}</p>
+              <p><strong>Outcome / current status</strong>{project.outcome}</p>
+            </div>
+          </div>
+        </article>;
+      })}</div>
+    </section>,
+    experience: <section key="experience" className="section-shell experience-section" id="experience" aria-labelledby="experience-heading" data-reveal="up">
+      <h2 className="section-label" id="experience-heading">Experience</h2>
+      <div className="experience-roles">{experience.map((item) => {
+        const isUta = item.title === "Student Technical Assistant";
+        const roleOpen = Boolean(openRoles[item.title]);
+        const extraId = `experience-extra-${isUta ? "uta" : "nrcs"}`;
+        return <article className="experience-role" key={item.title}>
+          <div className="experience-logo">{isUta
+            ? <Image src="/images/uta-logo.png" alt="UTA logo" width={44} height={44} />
+            : <Image src="/images/nrcs-logo.png" alt="Nepal Red Cross Society logo" width={44} height={44} />}</div>
+          <div className="experience-role-body">
+            <div className="experience-title-row"><h3>{item.title}</h3><p className="experience-date">{item.date}</p></div>
+            <p className="experience-organization">{isUta ? "Office of Information Technology, University of Texas at Arlington · Arlington, TX" : "Nepal Red Cross Society · Nepal"}</p>
+            <p className="experience-summary">{isUta ? "Support classroom and lab technology across hardware, software, and AV systems." : "Provide front-line IT support, workstation setup, website updates, and accessible PDF support."}</p>
+            <ul className="experience-tools" aria-label="Skills and tools">{item.tools.map((tool) => {
+              const ToolIcon = getExperienceIcon(tool);
+              return <li key={tool}><ToolIcon size={16} aria-hidden="true" />{tool}</li>;
+            })}</ul>
+            <button className="experience-toggle" type="button" aria-expanded={roleOpen} aria-controls={extraId} onClick={() => setOpenRoles((roles) => ({ ...roles, [item.title]: !roles[item.title] }))}>
+              {roleOpen ? "Show less" : "Learn more about this role"}<ChevronDown size={16} aria-hidden="true" />
+            </button>
+            <div className="experience-extra" id={extraId} data-open={roleOpen} aria-hidden={!roleOpen} inert={!roleOpen}>
+              <div><div className="experience-panel">
+                <p>{item.explanation}</p>
+                <ul className="experience-bullets">{item.responsibilities.map((line) => <li key={line}>{line}</li>)}</ul>
+              </div></div>
+            </div>
+          </div>
+        </article>;
+      })}</div>
+    </section>,
     leetcode: <LeetCodeSection key="leetcode" />,
-    github: <section key="github" className="section-shell github-section" id="github" data-reveal="up"><div className="section-label"><span>07</span> GitHub / Development</div><div className="github-content"><div className="github-heading"><h2>Source code<br /><span>on GitHub.</span></h2><p>Public repositories for the projects featured above.</p><a className="button-primary" href={siteLinks.github} target="_blank" rel="noopener noreferrer">Visit GitHub <ArrowUpRight size={16} aria-hidden="true" /></a></div><div className="github-console"><div className="github-console-head"><span><i aria-hidden="true" /> PASWANRAJU / SELECTED WORK</span><span>PUBLIC PROFILE</span></div><div className="github-repos">{projects.filter((project) => project.github).map((project) => <a className="github-repo" href={project.github} target="_blank" rel="noopener noreferrer" key={project.title}><span className="github-repo-index" aria-hidden="true">{project.number}</span><span><strong>{project.title}</strong><small>{project.description}</small></span><ExternalLink size={14} aria-hidden="true" /></a>)}</div><div className="github-console-foot"><span>PROFILE / {siteLinks.github.replace("https://github.com/", "")}</span><span>{projects.filter((project) => project.github).length} FEATURED REPOSITORIES</span></div></div></div></section>,
-    notes: <section key="notes" hidden={recruiter} className="section-shell split-section notes-section" id="notes" data-reveal="up"><div className="section-label"><span>08</span> Build Notes</div><div className="notes-content"><h2>What I&apos;ve been<br /><span>working on.</span></h2><ol className="build-log">{buildNotes.map((group) => <li className="build-log-group" key={group.when}>{group.dateTime ? <time dateTime={group.dateTime}>{group.when}</time> : <span className="build-log-when">{group.when}</span>}<ul>{group.entries.map((entry) => <li key={entry.title}><strong>{entry.title}</strong> {entry.text}</li>)}</ul></li>)}</ol></div></section>,
-    skills: <section key="skills" className="section-shell split-section skills-section" id="skills" data-reveal="up"><div className="section-label"><span>09</span> Skills &amp; Tools</div><div className="skills-content"><h2>Skills &amp;<br /><span>tools.</span></h2><p className="skills-note">What I&apos;ve used hands-on in projects and coursework, and what I&apos;m still learning.</p>{!recruiter && <SkillsCloud />}<div className="skill-grid">{skillGroups.map((group, index) => <div className={`skill-group skill-group-card${group.state === "Hands-on" ? "" : " is-learning"}`} data-reveal="up" data-reveal-delay={index * 80} key={group.label}><small>{group.label}</small><span className="skill-state">{group.state}</span><div>{group.items.map((item) => <SkillChip item={item} key={item} />)}</div></div>)}</div></div></section>,
-    contact: <section key="contact" className="contact-section" id="contact"><div className="section-shell contact-inner"><div className="contact-intro"><div className="section-label"><span>10</span> Get In Touch</div><h2>Let&apos;s<br /><span>talk.</span></h2><p>Happy to talk about any of these projects, collaborations, or opportunities.</p><div className="contact-links"><a href={siteLinks.email}><Mail size={17} aria-hidden="true" /><span>{personalInfo.email}</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer"><BriefcaseBusiness size={17} aria-hidden="true" /><span>LinkedIn</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer"><GitBranch size={17} aria-hidden="true" /><span>GitHub</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer"><Code2 size={17} aria-hidden="true" /><span>LeetCode</span><ArrowUpRight size={13} aria-hidden="true" /></a></div></div><div className="contact-cta"><span className="contact-cta-label">EMAIL</span><a className="contact-cta-email" href={siteLinks.email}>{personalInfo.email}</a><p>Email is the best way to reach me. The button below opens your email app with a new message addressed to me.</p><div className="contact-cta-actions"><a className="button-primary" href={siteLinks.email}><Mail size={16} aria-hidden="true" />Email Me <ArrowUpRight size={16} aria-hidden="true" /></a><button className="contact-copy" type="button" onClick={copyEmail}>{copyState === "copied" ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}{copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy unavailable" : "Copy address"}</button></div><p className="sr-only" role="status">{copyState === "copied" ? "Email address copied to clipboard." : copyState === "failed" ? "Couldn't copy automatically. Select the email address instead." : ""}</p></div></div></section>,
+    skills: <section key="skills" className="section-shell skills-section" id="skills" aria-labelledby="skills-heading" data-reveal="up">
+      <h2 className="section-label" id="skills-heading">Skills</h2>
+      <p className="skills-intro">The tools I&apos;ve used in my projects and coursework, and what I&apos;m learning next.</p>
+      <div className="skills-groups">{skillGroups.map((group) => {
+        const learning = group.state === "In progress";
+        return <div className={`skills-group${learning ? " is-learning" : ""}`} key={group.label}>
+          <h3>{group.label}{learning && <span className="skills-badge">In progress</span>}</h3>
+          <ul className="skills-items">{group.items.map((item) => {
+            const { icon: SkillIcon, color } = getSkillIcon(item);
+            return <li key={item}><SkillIcon size={18} color={color} aria-hidden="true" />{item}</li>;
+          })}</ul>
+        </div>;
+      })}</div>
+    </section>,
+    contact: <section key="contact" className="section-shell connect-section" id="contact" aria-labelledby="contact-heading">
+      <h2 className="section-label" id="contact-heading">Let&apos;s connect</h2>
+      <div className="connect-columns">
+        <div className="connect-details">
+          <p className="connect-lead">Looking for a Summer 2027 software engineering intern, or want to talk about a project? I&apos;d be glad to hear from you.</p>
+          <a className="connect-button connect-email" href={siteLinks.email}>{personalInfo.email}<ArrowRight size={18} aria-hidden="true" /></a>
+          <div className="connect-profiles">
+            <a className="connect-button" href={siteLinks.github} target="_blank" rel="noopener noreferrer"><GitHubIcon size={18} />GitHub</a>
+            <a className="connect-button" href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer"><LinkedInIcon size={18} />LinkedIn</a>
+            <a className="connect-button" href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer"><LeetCodeIcon size={18} />LeetCode</a>
+          </div>
+          <p className="connect-location">Based in Arlington, Texas</p>
+        </div>
+        <ContactForm />
+      </div>
+    </section>,
   };
-  // reducedMotion="user": Framer skips transform animations (modals, chip hover lift) for reduced-motion users.
-  // While a dialog is open everything behind it is `inert`: not focusable, not clickable, hidden from screen readers.
-  return <MotionConfig reducedMotion="user">
-    <a className="skip-link" href="#main-content" inert={dialogOpen}>Skip to main content</a>
-    <Atmosphere quiet={recruiter} paused={dialogOpen} />
+  return <>
+    <a className="skip-link" href="#main-content">Skip to main content</a>
     <ScrollProgress />
-    <header ref={headerRef} className="site-header" inert={dialogOpen} onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="RKP home">RKP<span aria-hidden="true">.</span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navFor(recruiter).map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => requestAnimationFrame(() => setMenuOpen(false))}>{item.label}<i aria-hidden="true" /></a>)}</nav><div className="header-actions"><button className="palette-trigger" type="button" onClick={() => openDialog("palette")} aria-label="Open command palette" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K"><Command size={14} aria-hidden="true" /> K</button><button className="mode-toggle" type="button" aria-pressed={recruiter} onClick={toggleRecruiter}><span className="mode-toggle-track" aria-hidden="true"><span /></span>Recruiter<span className="mode-toggle-long"> mode</span></button><a className="header-contact" href="#contact">Hire Me <ArrowUpRight size={15} aria-hidden="true" /></a><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
-    <main id="main-content" tabIndex={-1} inert={dialogOpen}>
+    <header ref={headerRef} className="site-header" onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => setMenuOpen(false)}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
+    <main id="main-content" tabIndex={-1}>
     <section className="hero section-shell" id="top">
       <div ref={headerSentinelRef} className="header-sentinel" aria-hidden="true" />
       <div className="hero-copy">
         <p className="hero-intro-label">Hi, I&apos;m</p>
-        <h1 className="hero-name"><span className="name-line"><span>Raju</span></span><span className="name-line"><span>Kumar</span></span><span className="name-line name-accent"><span>Paswan</span></span></h1>
-        {recruiter ? <p className="hero-role hero-role-recruiter"><span>{heroRole[0]}</span><span className="hero-role-sep" aria-hidden="true"> • </span><span className="sr-only">, </span><span>{heroRole[1]}</span></p> : <p className="hero-role">{heroRole[0]}<br /><span>{heroRole.slice(1).join(" • ")}</span></p>}
+        <h1 className="hero-name"><span className="name-line"><span>Raju Kumar</span></span><span className="name-line name-accent"><span>Paswan<i aria-hidden="true">.</i></span></span></h1>
+        <p className="hero-role">Software development across systems, AI, and the web.</p>
         <p className="hero-academic">{education.degreeShort} <span aria-hidden="true">•</span> {education.minor} — UTA</p>
         <p className="hero-summary">I&apos;m a CS student at UTA who learns by building — from low-level systems and AI experiments to web projects.</p>
-        {recruiter
-          ? <div className="hero-actions hero-actions-recruiter"><a className="button-primary" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">View Resume (PDF) <ArrowUpRight size={16} aria-hidden="true" /></a><a className="text-link" href={siteLinks.email}>Email</a><a className="text-link" href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a><a className="text-link" href={siteLinks.github} target="_blank" rel="noopener noreferrer">GitHub</a>{exploreButton}</div>
-          : <div className="hero-actions"><a className="button-primary" href="#projects">View Projects <ArrowDown size={16} aria-hidden="true" /></a>{resumeLink}{exploreButton}</div>}
+        <div className="hero-actions"><a className="button-primary hero-project-static" href="#projects">Explore projects <ArrowRight size={16} aria-hidden="true" /></a><a className="hero-resume-button" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">View resume <Download size={16} aria-hidden="true" /></a></div>
       </div>
-      {!recruiter && <div className="hero-art">
-        <div className="hero-socials">
-          <a href={siteLinks.github} target="_blank" rel="noopener noreferrer"><GitBranch size={16} aria-hidden="true" /><span>GitHub</span><ArrowUpRight size={12} aria-hidden="true" /></a>
-          <a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer"><BriefcaseBusiness size={16} aria-hidden="true" /><span>LinkedIn</span><ArrowUpRight size={12} aria-hidden="true" /></a>
-          <a href="https://leetcode.com/u/raju_algo/" target="_blank" rel="noopener noreferrer"><Code2 size={16} aria-hidden="true" /><span>LeetCode</span><ArrowUpRight size={12} aria-hidden="true" /></a>
-        </div>
-        <HeroScene />
-        <div className="hero-scroll-cue" aria-hidden="true"><span /> Scroll to explore</div>
-      </div>}
+      <div className="hero-art">
+        <div className="hero-portrait-wrap"><span className="hero-yellow-bar" aria-hidden="true" /><div className="hero-portrait-card"><Image className="hero-portrait" src="/images/raju-photo.png" alt="Raju Kumar Paswan" width={1086} height={1448} sizes="(max-width: 520px) 100vw, 420px" priority /></div><p className="hero-caption">Computer Science · UT Arlington</p></div>
+      </div>
     </section>
-    {(recruiter ? recruiterSectionOrder : defaultSectionOrder).map((key) => sections[key])}
+    {defaultSectionOrder.map((key) => sections[key])}
     </main>
-    <footer className="site-footer section-shell" inert={dialogOpen}><div className="footer-identity"><span className="wordmark" aria-hidden="true">RKP<span>.</span></span></div><span suppressHydrationWarning>Designed and built by Raju Kumar Paswan with Next.js and Three.js<br />© {new Date().getFullYear()} Raju Kumar Paswan</span></footer>
-    {!recruiter && <button className="terminal-trigger" type="button" inert={dialogOpen} onClick={() => openDialog("terminal")} aria-label="Open safe terminal" aria-haspopup="dialog"><Terminal size={15} aria-hidden="true" /> terminal</button>}
-    <AnimatePresence>{palette && <CommandPalette key="palette" onClose={closeDialogs} recruiter={recruiter} onToggleRecruiter={toggleRecruiter} onExploreResume={() => { setPalette(false); setExplorerOpen(true); }} />}{explorerOpen && <ResumeExplorer key="explorer" recruiter={recruiter} onClose={() => closeDialogs()} onViewProjects={viewProjects} />}{terminalOpen && <TerminalModal key="terminal" output={terminalOutput} onRun={runTerminal} onClose={() => closeDialogs()} />}</AnimatePresence>
-    <p className="sr-only" role="status">{modeTouched ? (recruiter ? "Recruiter mode on. Showing Experience, Projects, and Skills first, with less decoration." : "Recruiter mode off. Showing the full portfolio.") : ""}</p>
-  </MotionConfig>;
+    <footer className="page-footer section-shell">
+      <p suppressHydrationWarning>© {new Date().getFullYear()} {personalInfo.name}</p>
+      <button className="page-footer-top" type="button" onClick={backToTop}>Back to top<ArrowUp size={18} aria-hidden="true" /></button>
+    </footer>
+  </>;
 }
