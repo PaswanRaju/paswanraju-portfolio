@@ -3,9 +3,9 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { AnimatePresence, motion, MotionConfig, useReducedMotion, useScroll } from "framer-motion";
-import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, Download, ExternalLink, GitBranch, Mail, Menu, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, Download, ExternalLink, FileText, GitBranch, Mail, Menu, X } from "lucide-react";
 import { createElement, Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
-import { buildNotes, currentFocus, education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, skillProjectLinks, thinkingPrinciples, type Project, type SkillName } from "../data/site";
+import { buildNotes, education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, skillProjectLinks, thinkingPrinciples, type Project, type SkillName } from "../data/site";
 import { usePointerTilt } from "../lib/motion";
 import SkillsCloud from "../components/skills-cloud";
 import SystemMap from "../components/system-map";
@@ -234,7 +234,37 @@ export default function Portfolio() {
   const viewProjects = () => { closeDialogs(false); requestAnimationFrame(() => { location.hash = "projects"; }); };
   const resumeLink = <a className="text-link resume-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">Resume <ArrowUpRight size={16} aria-hidden="true" /></a>;
   const sections = {
-    about: <section key="about" className="section-shell split-section" id="about" data-reveal="up"><div className="section-label"><span>01</span> About</div><div className="about-content"><h2>Learning by<br /><span>building.</span></h2><div className="about-grid"><div className="about-copy"><p className="large-copy">I&apos;m a Computer Science student at The University of Texas at Arlington with a minor in Data Science. I like working on different parts of software, from low-level systems and debugging to AI projects, cloud infrastructure, and interactive web applications. I usually learn best by building things, breaking them, figuring out why they broke, and improving them.</p><div className="currently"><strong>Currently</strong>{currentFocus.map((item) => <span key={item}>{item}</span>)}</div></div><div className="portrait-wrap"><div className="portrait-frame"><Image className="portrait" src="/images/raju-profile.jpg" alt="Portrait of Raju Kumar Paswan" width={280} height={350} priority={false} /></div></div></div><div className="education-panels"><div className="education-panel education-primary"><small>Education</small><strong>{education.school}</strong><span>{education.degree}<br />{education.minor}</span></div><div className="education-panel"><small>Coursework</small><div className="education-list">{education.coursework.map((item) => <span key={item}>{item}</span>)}</div></div><div className="education-panel"><small>Organizations</small><div className="education-list">{education.organizations.map((item) => <span key={item}>{item}</span>)}</div></div></div></div></section>,
+    about: <section key="about" className="section-shell about-section" id="about" aria-labelledby="about-heading" data-reveal="up">
+      <h2 className="section-label" id="about-heading">About me</h2>
+      <div className="about-columns">
+        <div className="about-details">
+          <p className="about-lead">I&apos;m Raju Kumar Paswan, a Computer Science student at the University of Texas at Arlington, minoring in Data Science. I&apos;m interested in how software works all the way down, from the instructions a processor runs to the applications people use every day.</p>
+          <p>At UTA&apos;s Office of Information Technology, I work as a Student Technical Assistant, supporting classroom and lab technology across hardware, software, and AV systems. Outside of work, I build projects that pull me into new areas, from a decision-support pipeline for manufacturing data to a bare-metal ARM kernel lab. I&apos;m currently looking for Summer 2027 software engineering internships.</p>
+          <h3>What I&apos;m studying</h3>
+          <ul className="about-pills">{education.coursework.map((item) => <li key={item}>{item}</li>)}</ul>
+          <h3>Organizations</h3>
+          <ul className="about-pills about-organizations">{education.organizations.map((item) => <li key={item}>{item}</li>)}</ul>
+        </div>
+        <div className="about-cards">
+          <article className="about-card about-resume">
+            <h3><FileText size={24} aria-hidden="true" />My resume</h3>
+            <p>Want the quick version? My education, experience, and projects in one PDF.</p>
+            <div className="about-resume-actions">
+              <a className="about-download" href={siteLinks.resume} download>Download PDF <Download size={16} aria-hidden="true" /></a>
+              <a className="about-preview" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">Preview resume <ArrowRight size={16} aria-hidden="true" /></a>
+            </div>
+          </article>
+          <article className="about-card about-education">
+            <div className="about-education-title">
+              <span className="about-uta-badge"><Image src="/images/uta-logo.png" alt="UTA logo" width={44} height={44} /></span>
+              <div><p className="about-education-label">Education</p><h3>{education.degreeShort}</h3><p>{education.minor}</p></div>
+            </div>
+            <p>{education.school}</p>
+            <dl><div><dt>Expected graduation:</dt><dd>May 2028</dd></div><div><dt>Location:</dt><dd>Arlington, Texas</dd></div></dl>
+          </article>
+        </div>
+      </div>
+    </section>,
     projects: <section key="projects" className="work-section" id="projects"><div className="section-shell"><div className="section-heading"><div><div className="section-label"><span>02</span> Projects</div><h2>Selected systems<br /><span>and experiments.</span></h2></div><p>Built, documented, and still being explored.</p></div><div className="project-grid">{projects.map((project, index) => { const caseStudyId = `case-study-${project.number}`; const isOpen = expanded === project.title; return <Fragment key={project.title}><TiltCard featured={index < 2} planned={project.status !== "Completed"} index={index}><ProjectVisual project={project} /><div className="project-info"><div className="project-title-row"><div><h3>{project.title}</h3><p>{project.description}</p>{project.note && <p className="project-note"><b>{project.note.label}</b> {project.note.text}</p>}</div><span className={`status ${project.status === "Completed" ? "complete" : ""}`}>{project.status}</span></div><div className="project-meta"><div className="tag-list">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{(project.github || project.liveDemo) && <div className="project-links">{project.github && <a href={project.github} target="_blank" rel="noopener noreferrer">GitHub<span className="sr-only"> repository for {project.title}</span> <ExternalLink size={12} aria-hidden="true" /></a>}{project.liveDemo && <a href={project.liveDemo} target="_blank" rel="noopener noreferrer">Live Demo<span className="sr-only"> of {project.title}</span> <ExternalLink size={12} aria-hidden="true" /></a>}</div>}</div><button className="details-button" type="button" aria-expanded={isOpen} aria-controls={caseStudyId} onClick={() => setExpanded(isOpen ? null : project.title)}>Case study<span className="sr-only">: {project.title}</span> <span aria-hidden="true">{isOpen ? "−" : "+"}</span></button><div className="case-study" id={caseStudyId} hidden={!isOpen}><p><b>Problem</b>{project.problem}</p><p><b>Approach</b>{project.approach}</p><p><b>Engineering decisions</b>{project.decisions}</p><p><b>Outcome / current status</b>{project.outcome}</p></div></div></TiltCard></Fragment>; })}</div></div></section>,
     experience: <section key="experience" className="section-shell split-section experience-section" id="experience" data-reveal="up"><div className="section-label"><span>03</span> Experience</div><div className="experience-content"><h2>A timeline of<br /><span>technical support.</span></h2><div className="timeline"><div className="timeline-progress" data-reveal="line" aria-hidden="true" /><div className="timeline-items">{experience.map((item, index) => <article className="timeline-item" data-reveal="up" data-reveal-delay={150 + index * 80} key={item.title}><div className="timeline-marker" aria-hidden="true" /><div><small>{item.date}</small><h3>{item.title}</h3><p className="timeline-company">{item.company}</p><ul>{item.responsibilities.map((line) => <li key={line}>{line}</li>)}</ul><div className="tag-list">{item.tools.map((tool) => <span key={tool}>{tool}</span>)}</div></div></article>)}</div></div></div></section>,
     thinking: <section key="thinking" className="section-shell split-section thinking-section" id="how-i-think" aria-labelledby="how-i-think-title" data-reveal="up"><div className="section-label"><span>04</span> How I Think</div><div className="thinking-content"><h2 id="how-i-think-title">How I approach<br /><span>problems.</span></h2><ol className="thinking-list">{thinkingPrinciples.map((principle) => <li className="thinking-item" key={principle.number}><span className="thinking-number" aria-hidden="true">{principle.number}</span><div><h3>{principle.title}</h3><p>{principle.body}</p><p className="thinking-source"><b>{principle.source}</b> {principle.detail}</p></div></li>)}</ol></div></section>,
