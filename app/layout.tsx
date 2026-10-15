@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { InlineScript } from "../components/inline-script";
 import { education, personalInfo, siteLinks } from "../data/site";
@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   openGraph: { title, description, url: siteUrl, siteName: personalInfo.name, type: "website" },
   twitter: { card: "summary_large_image", title, description },
 };
+
+// Lay out under the notch and home bar; globals.css pads with env(safe-area-inset-*) so content stays clear of them.
+export const viewport: Viewport = { viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
