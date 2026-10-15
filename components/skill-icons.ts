@@ -11,25 +11,27 @@ type SkillIcon = { icon: ComponentType<{ size?: number; color?: string; "aria-hi
 
 // Brand logos use their official color; a few very light brand colors are darkened so the icon stays visible
 // on white. Skills without an official logo get a lucide icon in the portfolio violet.
-const violet = "#6b5b95";
+// Colors are CSS values (applied through --skill-color in globals.css). Logos too dark to see on the dark theme
+// use a --brand-* token that switches to a lighter shade there.
+const violet = "var(--color-violet)";
 const iconFor: Record<SkillName, SkillIcon> = {
   Python: { icon: SiPython, color: "#3776ab" },
-  C: { icon: SiC, color: "#00599c" },
+  C: { icon: SiC, color: "var(--brand-c)" },
   "ARM Assembly": { icon: SiArm, color: "#0091bd" },
   JavaScript: { icon: SiJavascript, color: "#d4b600" },
-  Pandas: { icon: SiPandas, color: "#150458" },
+  Pandas: { icon: SiPandas, color: "var(--brand-pandas)" },
   "scikit-learn": { icon: SiScikitlearn, color: "#f7931e" },
-  Matplotlib: { icon: ChartLine, color: "#11557c" },
+  Matplotlib: { icon: ChartLine, color: "var(--brand-matplotlib)" },
   "TF-IDF": { icon: FileSearch, color: violet },
   "AI / ML": { icon: BrainCircuit, color: violet },
-  Linux: { icon: SiLinux, color: "#111111" },
+  Linux: { icon: SiLinux, color: "var(--brand-linux)" },
   Git: { icon: SiGit, color: "#f05032" },
-  GDB: { icon: SiGnu, color: "#a42e2b" },
+  GDB: { icon: SiGnu, color: "var(--brand-gnu)" },
   QEMU: { icon: SiQemu, color: "#ff6600" },
-  Make: { icon: SiGnu, color: "#a42e2b" },
+  Make: { icon: SiGnu, color: "var(--brand-gnu)" },
   HTML: { icon: SiHtml5, color: "#e34f26" },
-  CSS: { icon: SiCss, color: "#663399" },
-  "Next.js": { icon: SiNextdotjs, color: "#000000" },
+  CSS: { icon: SiCss, color: "var(--brand-css)" },
+  "Next.js": { icon: SiNextdotjs, color: "var(--brand-nextjs)" },
   Java: { icon: SiOpenjdk, color: "#437291" },
   SQL: { icon: Database, color: violet },
   PostgreSQL: { icon: SiPostgresql, color: "#4169e1" },
@@ -39,7 +41,7 @@ const iconFor: Record<SkillName, SkillIcon> = {
   "Spring Boot": { icon: SiSpringboot, color: "#6db33f" },
   React: { icon: SiReact, color: "#149eca" },
   FastAPI: { icon: SiFastapi, color: "#009688" },
-  LangChain: { icon: SiLangchain, color: "#1c3c3c" },
+  LangChain: { icon: SiLangchain, color: "var(--brand-langchain)" },
   ChromaDB: { icon: Database, color: violet },
   Redis: { icon: SiRedis, color: "#dc382d" },
   "GitHub Actions": { icon: SiGithubactions, color: "#2088ff" },

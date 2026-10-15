@@ -10,6 +10,7 @@ import { getExperienceIcon } from "../components/experience-icons";
 import { getSkillIcon } from "../components/skill-icons";
 import { getTechIcon } from "../components/tech-icons";
 import { GitHubIcon, LeetCodeIcon, LinkedInIcon } from "../components/brand-icons";
+import { ThemeToggle } from "../components/theme-toggle";
 
 // Navbar links and page sections share one order.
 const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "skills", label: "Skills" }, { id: "leetcode", label: "LeetCode" }, { id: "contact", label: "Contact" }];
@@ -321,7 +322,7 @@ export default function Portfolio() {
           <h3>{group.label}{learning && <span className="skills-badge">In progress</span>}</h3>
           <ul className="skills-items">{group.items.map((item) => {
             const { icon: SkillIcon, color } = getSkillIcon(item);
-            return <li key={item}><SkillIcon size={18} color={color} aria-hidden="true" />{item}</li>;
+            return <li key={item} style={{ "--skill-color": color } as React.CSSProperties}><SkillIcon size={18} aria-hidden="true" />{item}</li>;
           })}</ul>
         </div>;
       })}</div>
@@ -346,7 +347,7 @@ export default function Portfolio() {
   return <>
     <a className="skip-link" href="#main-content">Skip to main content</a>
     <ScrollProgress />
-    <header ref={headerRef} className="site-header" onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => setMenuOpen(false)}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
+    <header ref={headerRef} className="site-header" onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => setMenuOpen(false)}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a><ThemeToggle className="theme-toggle theme-toggle-menu" label="Dark mode" /></nav><div className="header-actions"><ThemeToggle className="theme-toggle theme-toggle-bar" /><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
     <main id="main-content" tabIndex={-1}>
     <section className="hero section-shell" id="top">
       <div ref={headerSentinelRef} className="header-sentinel" aria-hidden="true" />

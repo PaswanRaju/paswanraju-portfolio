@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { InlineScript } from "../components/inline-script";
+import { ThemeProvider } from "../components/theme-provider";
 import { education, personalInfo, siteLinks } from "../data/site";
 import { revealBodyScript, revealHeadScript } from "../lib/reveal";
 import "./globals.css";
@@ -29,7 +30,7 @@ export const viewport: Viewport = { viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    // suppressHydrationWarning: the head script adds data-js-reveal to <html> before React hydrates.
+    // suppressHydrationWarning: inline scripts add data-js-reveal and the theme class to <html> before React hydrates.
     <html
       lang="en"
       className={`${inter.variable} ${inter.className} h-full antialiased`}
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <InlineScript html={revealHeadScript} />
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <InlineScript html={revealBodyScript} />
         <script
           type="application/ld+json"
