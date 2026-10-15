@@ -33,6 +33,7 @@ Three.js background, dark theme, terminal button, ⌘K command menu, recruiter m
 - Must be responsive on mobile.
 
 ## Working rules
+- Always use Context7 to check current documentation before writing code that uses Next.js, React, framer-motion, lucide-react, or react-icons.
 - Work on ONE section per task. Do not touch other sections.
 - After each task, summarize which files changed.
 - Run `npm run build` before finishing to confirm nothing is broken.

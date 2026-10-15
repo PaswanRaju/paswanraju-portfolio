@@ -3,7 +3,7 @@ export const personalInfo = {
   shortName: "Raju Paswan",
   role: "Computer Science Student • Software Developer • Builder",
   intro: "Computer Science student at UTA exploring software engineering, AI, cloud systems, full-stack development, and systems programming.",
-  email: "paswanrajukumar890@gmail.com",
+  email: "raju@paswanraju.com",
 } as const;
 
 export const siteLinks = {
@@ -108,14 +108,3 @@ export const skillGroups = [
 ] as const;
 
 export type SkillName = (typeof skillGroups)[number]["items"][number];
-
-// Keys must be skill names and values completed project titles, so a typo fails type-checking instead of silently hiding the link.
-export const skillProjectLinks: Partial<Record<SkillName, readonly Extract<Project, { status: "Completed" }>["title"][]>> = {
-  Python: ["OperatorLoop"],
-  JavaScript: ["3D Tic Tac Toe"],
-  C: ["AArch64 Teaching Kernel Lab"],
-  Git: ["OperatorLoop", "AArch64 Teaching Kernel Lab"],
-  GDB: ["AArch64 Teaching Kernel Lab"],
-  QEMU: ["AArch64 Teaching Kernel Lab"],
-  "AI / ML": ["OperatorLoop"],
-};

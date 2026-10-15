@@ -1,24 +1,20 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
-import { AnimatePresence, motion, MotionConfig, useScroll } from "framer-motion";
-import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, Download, FileText, GitBranch, Mail, Menu, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, useScroll } from "framer-motion";
+import { ArrowRight, ArrowUp, ArrowUpRight, ChevronDown, Download, FileText, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, type Project } from "../data/site";
+import ContactForm from "../components/contact-form";
 import { getExperienceIcon } from "../components/experience-icons";
 import { getSkillIcon } from "../components/skill-icons";
 import { getTechIcon } from "../components/tech-icons";
 import { GitHubIcon, LeetCodeIcon, LinkedInIcon } from "../components/brand-icons";
 
-// The whole Resume Explorer (2D view, 3D scene) is fetched only when it is first opened.
-const ResumeExplorer = dynamic(() => import("../components/resume-explorer"), { ssr: false, loading: () => <div className="overlay explorer-overlay" aria-hidden="true" /> });
 // Navbar links and page sections share one order.
 const navItems = [{ id: "about", label: "About" }, { id: "projects", label: "Projects" }, { id: "experience", label: "Experience" }, { id: "skills", label: "Skills" }, { id: "leetcode", label: "LeetCode" }, { id: "contact", label: "Contact" }];
 const defaultSectionOrder = ["about", "projects", "experience", "skills", "leetcode", "contact"] as const;
 
-// "Computer Science Student" leads; the rest of the role sits on its own line so wrapping never strands a bullet.
-const heroRole = personalInfo.role.split(" • ");
 
 const projectHighlights = {
   OperatorLoop: {
@@ -170,37 +166,21 @@ function LeetCodeSection() {
 export default function Portfolio() {
   const [openRoles, setOpenRoles] = useState<Record<string, boolean>>({});
   const [openProjectDetails, setOpenProjectDetails] = useState<Record<string, boolean>>({});
-  const [menuOpen, setMenuOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("about");
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
   const headerSentinelRef = useRef<HTMLDivElement>(null);
-  const dialogOpenerRef = useRef<HTMLElement | null>(null);
-  const dialogOpen = explorerOpen;
-
-  // Remember what had focus before a dialog opens, so closing it can put focus back there.
-  const openDialog = useCallback(() => {
-    dialogOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setMenuOpen(false);
-    setExplorerOpen(true);
-  }, []);
-  const closeDialogs = useCallback((restoreFocus = true) => {
-    setExplorerOpen(false);
-    // After the commit that removes `inert` from the page, so the opener is focusable again.
-    if (restoreFocus) requestAnimationFrame(() => dialogOpenerRef.current?.focus({ preventScroll: true }));
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (explorerOpen) closeDialogs();
-      else if (menuOpen) { setMenuOpen(false); menuToggleRef.current?.focus(); }
+      if (menuOpen) { setMenuOpen(false); menuToggleRef.current?.focus(); }
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [closeDialogs, explorerOpen, menuOpen]);
+  }, [menuOpen]);
 
   // Close the mobile menu on a tap outside the header.
   useEffect(() => {
@@ -227,19 +207,12 @@ export default function Portfolio() {
     // Taps leave focus alone: WebKit doesn't focus tapped links, so moved focus would only get in the way.
     if (opening && event.detail === 0) requestAnimationFrame(() => navRef.current?.querySelector<HTMLAnchorElement>("a")?.focus());
   };
-  const copyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText(personalInfo.email);
-      setCopyState("copied");
-    } catch {
-      setCopyState("failed");
-    }
-    window.setTimeout(() => setCopyState("idle"), 2400);
+  // Smooth unless the visitor prefers reduced motion; keyboard focus returns to the start of the page too.
+  const backToTop = () => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    document.getElementById("main-content")?.focus({ preventScroll: true });
   };
-  const exploreButton = <button type="button" className="text-link explore-link" aria-haspopup="dialog" onClick={openDialog}>Explore Resume</button>;
-  // From the explorer: close it, then jump to the Projects section.
-  const viewProjects = () => { closeDialogs(false); requestAnimationFrame(() => { location.hash = "projects"; }); };
-  const resumeLink = <a className="text-link resume-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">Resume <ArrowUpRight size={16} aria-hidden="true" /></a>;
   const sections = {
     about: <section key="about" className="section-shell about-section" id="about" aria-labelledby="about-heading" data-reveal="up">
       <h2 className="section-label" id="about-heading">About me</h2>
@@ -353,16 +326,28 @@ export default function Portfolio() {
         </div>;
       })}</div>
     </section>,
-    contact: <section key="contact" className="contact-section" id="contact"><div className="section-shell contact-inner"><div className="contact-intro"><div className="section-label"><span>10</span> Get In Touch</div><h2>Let&apos;s<br /><span>talk.</span></h2><p>Happy to talk about any of these projects, collaborations, or opportunities.</p><div className="contact-links"><a href={siteLinks.email}><Mail size={17} aria-hidden="true" /><span>{personalInfo.email}</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer"><BriefcaseBusiness size={17} aria-hidden="true" /><span>LinkedIn</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer"><GitBranch size={17} aria-hidden="true" /><span>GitHub</span><ArrowUpRight size={13} aria-hidden="true" /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer"><Code2 size={17} aria-hidden="true" /><span>LeetCode</span><ArrowUpRight size={13} aria-hidden="true" /></a></div></div><div className="contact-cta"><span className="contact-cta-label">EMAIL</span><a className="contact-cta-email" href={siteLinks.email}>{personalInfo.email}</a><p>Email is the best way to reach me. The button below opens your email app with a new message addressed to me.</p><div className="contact-cta-actions"><a className="button-primary" href={siteLinks.email}><Mail size={16} aria-hidden="true" />Email Me <ArrowUpRight size={16} aria-hidden="true" /></a><button className="contact-copy" type="button" onClick={copyEmail}>{copyState === "copied" ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}{copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy unavailable" : "Copy address"}</button></div><p className="sr-only" role="status">{copyState === "copied" ? "Email address copied to clipboard." : copyState === "failed" ? "Couldn't copy automatically. Select the email address instead." : ""}</p></div></div></section>,
+    contact: <section key="contact" className="section-shell connect-section" id="contact" aria-labelledby="contact-heading">
+      <h2 className="section-label" id="contact-heading">Let&apos;s connect</h2>
+      <div className="connect-columns">
+        <div className="connect-details">
+          <p className="connect-lead">Looking for a Summer 2027 software engineering intern, or want to talk about a project? I&apos;d be glad to hear from you.</p>
+          <a className="connect-button connect-email" href={siteLinks.email}>{personalInfo.email}<ArrowRight size={18} aria-hidden="true" /></a>
+          <div className="connect-profiles">
+            <a className="connect-button" href={siteLinks.github} target="_blank" rel="noopener noreferrer"><GitHubIcon size={18} />GitHub</a>
+            <a className="connect-button" href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer"><LinkedInIcon size={18} />LinkedIn</a>
+            <a className="connect-button" href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer"><LeetCodeIcon size={18} />LeetCode</a>
+          </div>
+          <p className="connect-location">Based in Arlington, Texas</p>
+        </div>
+        <ContactForm />
+      </div>
+    </section>,
   };
-  // reducedMotion="user": Framer skips transform animations (modals, chip hover lift) for reduced-motion users.
-  // While a dialog is open everything behind it is `inert`: not focusable, not clickable, hidden from screen readers.
-  return <MotionConfig reducedMotion="user">
-    <a className="skip-link" href="#main-content" inert={dialogOpen}>Skip to main content</a>
-    
+  return <>
+    <a className="skip-link" href="#main-content">Skip to main content</a>
     <ScrollProgress />
-    <header ref={headerRef} className="site-header" inert={dialogOpen} onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => setMenuOpen(false)}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
-    <main id="main-content" tabIndex={-1} inert={dialogOpen}>
+    <header ref={headerRef} className="site-header" onBlur={(event) => { const next = event.relatedTarget as Node | null; if (menuOpen && next && !event.currentTarget.contains(next)) setMenuOpen(false); }}><a className="wordmark" href="#top" aria-label="Raju Paswan home"><span className="wordmark-first">Raju.</span><span className="wordmark-last">Paswan<span className="wordmark-dot">.</span></span></a><nav ref={navRef} id="main-nav" className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">{navItems.map((item) => <a className={active === item.id ? "active" : ""} aria-current={active === item.id ? "true" : undefined} href={`#${item.id}`} key={item.id} onClick={() => setMenuOpen(false)}>{item.label}</a>)}<a className="resume-nav-link" href={siteLinks.resume} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Resume</a></nav><div className="header-actions"><div className="header-socials"><a href={siteLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon size={18} /></a><a href={leetcodeProfile.profileUrl} target="_blank" rel="noopener noreferrer" aria-label="LeetCode"><LeetCodeIcon size={18} /></a><a href={siteLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon size={18} /></a></div><button ref={menuToggleRef} className="menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-nav" onClick={toggleMenu}>{menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button></div></header>
+    <main id="main-content" tabIndex={-1}>
     <section className="hero section-shell" id="top">
       <div ref={headerSentinelRef} className="header-sentinel" aria-hidden="true" />
       <div className="hero-copy">
@@ -374,12 +359,14 @@ export default function Portfolio() {
         <div className="hero-actions"><a className="button-primary hero-project-static" href="#projects">Explore projects <ArrowRight size={16} aria-hidden="true" /></a><a className="hero-resume-button" href={siteLinks.resume} target="_blank" rel="noopener noreferrer">View resume <Download size={16} aria-hidden="true" /></a></div>
       </div>
       <div className="hero-art">
-        <div className="hero-portrait-wrap"><span className="hero-yellow-bar" aria-hidden="true" /><div className="hero-portrait-card"><Image className="hero-portrait" src="/images/raju-profile.jpg" alt="Portrait of Raju Kumar Paswan" width={560} height={700} priority /></div><p className="hero-caption">Computer Science · UT Arlington</p></div>
+        <div className="hero-portrait-wrap"><span className="hero-yellow-bar" aria-hidden="true" /><div className="hero-portrait-card"><Image className="hero-portrait" src="/images/raju-photo.png" alt="Raju Kumar Paswan" width={1086} height={1448} sizes="(max-width: 520px) 100vw, 420px" priority /></div><p className="hero-caption">Computer Science · UT Arlington</p></div>
       </div>
     </section>
     {defaultSectionOrder.map((key) => sections[key])}
     </main>
-    <footer className="site-footer section-shell" inert={dialogOpen}><div className="footer-identity"><span className="wordmark" aria-hidden="true">RKP<span>.</span></span></div><span suppressHydrationWarning>Designed and built by Raju Kumar Paswan with Next.js and Three.js<br />© {new Date().getFullYear()} Raju Kumar Paswan</span></footer>
-    <AnimatePresence>{explorerOpen && <ResumeExplorer key="explorer" recruiter={false} onClose={() => closeDialogs()} onViewProjects={viewProjects} />}</AnimatePresence>
-  </MotionConfig>;
+    <footer className="page-footer section-shell">
+      <p suppressHydrationWarning>© {new Date().getFullYear()} {personalInfo.name}</p>
+      <button className="page-footer-top" type="button" onClick={backToTop}>Back to top<ArrowUp size={18} aria-hidden="true" /></button>
+    </footer>
+  </>;
 }

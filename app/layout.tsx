@@ -11,16 +11,17 @@ const inter = Inter({
 });
 
 const siteUrl = "https://paswanraju.com";
-const title = "Raju Kumar Paswan | Computer Science Student & Software Developer";
-const description = "Computer Science student at UTA building projects across systems, AI, and the web.";
+const title = "Raju Kumar Paswan | Software Developer";
+const description = "Computer Science student at UT Arlington building software across systems, AI, and the web.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
   alternates: { canonical: "/" },
+  // The preview image comes from app/opengraph-image.tsx and the tab icon from app/icon.tsx.
   openGraph: { title, description, url: siteUrl, siteName: personalInfo.name, type: "website" },
-  twitter: { card: "summary", title, description },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
