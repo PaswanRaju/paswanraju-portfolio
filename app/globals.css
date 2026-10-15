@@ -1,5 +1,54 @@
 @import "tailwindcss";
 
+/* Projects redesign: scoped to avoid changing other sections. */
+#projects { padding-top: 80px; padding-bottom: 96px; }
+#projects .section-label { color: #111111; font-size: clamp(28px, 3vw, 36px); font-weight: 800; letter-spacing: -.045em; line-height: 1.15; margin: 0 0 16px; }
+#projects .section-label::before { background: #ff6f61; height: 40px; width: 5px; flex: none; }
+#projects .projects-intro { color: #5a6270; margin: 0 0 36px; line-height: 1.6; }
+#projects .projects-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; align-items: start; }
+#projects .projects-card { background: #fff; border: 1px solid #e1e4e8; border-radius: 16px; padding: 28px; min-width: 0; }
+#projects .projects-card[data-project="data"] { --project-accent: #c4473c; --project-soft: rgb(255 111 97 / 12%); --project-border: #ff6f61; }
+#projects .projects-card[data-project="kernel"] { --project-accent: #6b5b95; --project-soft: rgb(107 91 149 / 12%); --project-border: #6b5b95; }
+#projects .projects-card[data-project="game"] { --project-accent: #4a6fa5; --project-soft: rgb(146 168 209 / 20%); --project-border: #4a6fa5; }
+#projects .projects-card:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+#projects .project-visual { border-radius: 12px; height: 260px; margin: 0 0 24px; }
+#projects .project-number { display: none; }
+#projects .project-figure { background: #f7f7f5; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+#projects .project-figure img { height: auto; max-height: 200px; min-height: 0; object-fit: contain; width: 100%; }
+#projects .project-figure figcaption { color: #5a6270; font-size: 11px; line-height: 1.5; position: static; margin: 0; }
+#projects .visual-kernel { background: #1b2033; color: #f7f7f5; padding: 24px; }
+#projects .terminal-visual { color: #f7f7f5; font-size: clamp(12px, 1.3vw, 16px); overflow-wrap: anywhere; }
+#projects .visual-game { background: #92a8d1; margin-bottom: 0; min-height: 320px; }
+#projects .game-board { grid-template-columns: repeat(3, 64px); transform: perspective(500px) rotateX(12deg) rotateZ(-5deg); }
+#projects .game-board span { display: grid; place-items: center; height: 64px; padding: 0; color: #1b2033; font-size: 28px; font-weight: 700; border: 2px solid rgb(255 255 255 / 65%); }
+#projects .projects-category { display: inline-block; background: var(--project-soft); color: var(--project-accent); border-radius: 5px; padding: 5px 9px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+#projects h3 { color: #111111; font-size: clamp(22px, 2.2vw, 28px); font-weight: 750; line-height: 1.25; letter-spacing: -.035em; margin: 14px 0 12px; }
+#projects .projects-description, #projects .projects-case-study p { color: #5a6270; font-size: 15px; line-height: 1.7; margin: 0 0 20px; }
+#projects .projects-points { border-left: 4px solid var(--project-border); color: #5a6270; padding: 0 0 0 28px; margin: 20px 0; list-style: disc; font-size: 14px; line-height: 1.65; }
+#projects .projects-points li + li { margin-top: 8px; }
+#projects .projects-stack { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; color: #5a6270; font-size: 12px; margin: 0 0 20px; padding: 0; }
+#projects .projects-stack li { display: inline-flex; align-items: center; gap: 6px; }
+#projects .projects-stack svg { color: var(--project-accent); flex: none; }
+#projects .projects-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+#projects .projects-actions a, #projects .projects-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 14px; border: 1.5px solid #4f6b2a; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; }
+#projects .projects-source { background: #4f6b2a; color: #fff; }
+#projects .projects-source:hover { background: #3e5521; border-color: #3e5521; }
+#projects .projects-demo { background: transparent; color: #4f6b2a; }
+#projects .projects-demo:hover { color: #3e5521; border-color: #3e5521; }
+#projects .projects-actions .projects-details-toggle { background: var(--project-soft); border-color: var(--project-border); color: var(--project-accent); }
+#projects .projects-details-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+#projects .projects-case-study { border-top: 1px solid #e1e4e8; padding-top: 16px; margin-top: 20px; }
+#projects .projects-case-study strong { display: block; color: #111111; font-weight: 700; margin-bottom: 4px; }
+@media (max-width: 900px) {
+  #projects { padding-top: 64px; padding-bottom: 72px; }
+  #projects .projects-cards, #projects .projects-card:last-child { grid-template-columns: 1fr; }
+  #projects .projects-card:last-child { gap: 0; }
+  #projects .visual-game { margin-bottom: 24px; min-height: 260px; }
+}
+@media (max-width: 520px) {
+  #projects .projects-card { padding: 20px; }
+}
+
 /* About section only. */
 #about { padding-top: 80px; padding-bottom: 96px; }
 #about .section-label { color: #111111; font-size: clamp(28px, 3vw, 36px); font-weight: 800; letter-spacing: -.045em; line-height: 1.15; margin: 0 0 36px; }

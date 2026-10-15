@@ -4,9 +4,8 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { AnimatePresence, motion, MotionConfig, useReducedMotion, useScroll } from "framer-motion";
 import { ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Copy, Download, ExternalLink, FileText, GitBranch, Mail, Menu, X } from "lucide-react";
-import { createElement, Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
+import { createElement, useCallback, useEffect, useId, useRef, useState } from "react";
 import { buildNotes, education, experience, leetcodeProfile, personalInfo, projects, siteLinks, skillGroups, skillProjectLinks, thinkingPrinciples, type Project, type SkillName } from "../data/site";
-import { usePointerTilt } from "../lib/motion";
 import SkillsCloud from "../components/skills-cloud";
 import SystemMap from "../components/system-map";
 import { getTechIcon } from "../components/tech-icons";
@@ -21,10 +20,23 @@ const defaultSectionOrder = ["about", "projects", "experience", "thinking", "sys
 // "Computer Science Student" leads; the rest of the role sits on its own line so wrapping never strands a bullet.
 const heroRole = personalInfo.role.split(" • ");
 
-function TiltCard({ children, featured, planned, index }: { children: React.ReactNode; featured: boolean; planned: boolean; index: number }) {
-  const tilt = usePointerTilt({ perspective: 1100, maxRotateX: 3, maxRotateY: 3, glowVars: ["--card-x", "--card-y"] });
-  return <motion.article className={`project-card-tilt${featured ? " project-card-featured" : ""}${planned ? " project-card-planned" : ""}`} style={tilt.style} data-reveal="up" data-reveal-delay={index * 80} onPointerMove={tilt.onPointerMove} onPointerLeave={tilt.onPointerLeave}>{children}</motion.article>;
-}
+const projectHighlights = {
+  OperatorLoop: {
+    category: "AI / DATA",
+    summary: "Human-in-the-loop decision support for manufacturing sensor data.",
+    points: ["Evaluated across 160 synthetic runs with 28 injected anomalies.", "Matched exact process conditions before TF-IDF similarity ranking.", "Validated safety constraints and logged operator approvals, edits, and rejections."],
+  },
+  "AArch64 Teaching Kernel Lab": {
+    category: "SYSTEMS",
+    summary: "A bare-metal 64-bit ARM teaching kernel for Raspberry Pi 3.",
+    points: ["Inspected ELF sections and symbols with nm, objdump, and binary tools.", "Validated boot flow in QEMU/GDB, stepping through instructions and registers.", "Used Make, shell scripts, and Git/GitHub for reproducible builds and debugging."],
+  },
+  "3D Tic Tac Toe": {
+    category: "FRONTEND",
+    summary: "A browser Tic Tac Toe game with a 3D-style board.",
+    points: ["Animated moves, win and draw detection, and score tracking.", "Built with browser-native HTML, CSS, and JavaScript.", "Deployed as a playable browser game on GitHub Pages."],
+  },
+} satisfies Record<Extract<Project, { status: "Completed" }>["title"], { category: string; summary: string; points: string[] }>;
 
 function ProjectVisual({ project }: { project: Project }) {
   if (project.visual === "data") return <figure className="project-visual visual-data project-figure">
@@ -161,8 +173,8 @@ function LeetCodeSection() {
 }
 
 export default function Portfolio() {
+  const [openProjectDetails, setOpenProjectDetails] = useState<Record<string, boolean>>({});
   const [menuOpen, setMenuOpen] = useState(false), [moreOpen, setMoreOpen] = useState(false), [explorerOpen, setExplorerOpen] = useState(false);
-  const [expanded, setExpanded] = useState<string | null>(null);
   const [active, setActive] = useState("about");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const headerRef = useRef<HTMLElement>(null);
@@ -265,7 +277,41 @@ export default function Portfolio() {
         </div>
       </div>
     </section>,
-    projects: <section key="projects" className="work-section" id="projects"><div className="section-shell"><div className="section-heading"><div><div className="section-label"><span>02</span> Projects</div><h2>Selected systems<br /><span>and experiments.</span></h2></div><p>Built, documented, and still being explored.</p></div><div className="project-grid">{projects.map((project, index) => { const caseStudyId = `case-study-${project.number}`; const isOpen = expanded === project.title; return <Fragment key={project.title}><TiltCard featured={index < 2} planned={project.status !== "Completed"} index={index}><ProjectVisual project={project} /><div className="project-info"><div className="project-title-row"><div><h3>{project.title}</h3><p>{project.description}</p>{project.note && <p className="project-note"><b>{project.note.label}</b> {project.note.text}</p>}</div><span className={`status ${project.status === "Completed" ? "complete" : ""}`}>{project.status}</span></div><div className="project-meta"><div className="tag-list">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{(project.github || project.liveDemo) && <div className="project-links">{project.github && <a href={project.github} target="_blank" rel="noopener noreferrer">GitHub<span className="sr-only"> repository for {project.title}</span> <ExternalLink size={12} aria-hidden="true" /></a>}{project.liveDemo && <a href={project.liveDemo} target="_blank" rel="noopener noreferrer">Live Demo<span className="sr-only"> of {project.title}</span> <ExternalLink size={12} aria-hidden="true" /></a>}</div>}</div><button className="details-button" type="button" aria-expanded={isOpen} aria-controls={caseStudyId} onClick={() => setExpanded(isOpen ? null : project.title)}>Case study<span className="sr-only">: {project.title}</span> <span aria-hidden="true">{isOpen ? "−" : "+"}</span></button><div className="case-study" id={caseStudyId} hidden={!isOpen}><p><b>Problem</b>{project.problem}</p><p><b>Approach</b>{project.approach}</p><p><b>Engineering decisions</b>{project.decisions}</p><p><b>Outcome / current status</b>{project.outcome}</p></div></div></TiltCard></Fragment>; })}</div></div></section>,
+    projects: <section key="projects" className="section-shell projects-section" id="projects" aria-labelledby="projects-heading">
+      <h2 className="section-label" id="projects-heading">Projects</h2>
+      <p className="projects-intro">Built, documented, and still being explored.</p>
+      <div className="projects-cards">{projects.filter((project) => project.status === "Completed").map((project) => {
+        const highlights = projectHighlights[project.title];
+        const detailsOpen = Boolean(openProjectDetails[project.number]);
+        const detailsId = `project-details-${project.number}`;
+        return <article className="projects-card" data-project={project.visual} key={project.title}>
+          <ProjectVisual project={project} />
+          <div className="projects-card-body">
+            <span className="projects-category">{highlights.category}</span>
+            <h3>{project.title}</h3>
+            <p className="projects-description">{highlights.summary}</p>
+            <ul className="projects-points">{highlights.points.map((point) => <li key={point}>{point}</li>)}</ul>
+            <ul className="projects-stack" aria-label="Tech stack">{project.tags.map((tag) => {
+              const TechIcon = getTechIcon(tag);
+              return <li key={tag}><TechIcon size={16} aria-hidden="true" />{tag}</li>;
+            })}</ul>
+            <div className="projects-actions">
+              {project.github && <a className="projects-source" href={project.github} target="_blank" rel="noopener noreferrer"><GitHubIcon size={16} />Source code<span className="sr-only"> for {project.title}</span><ArrowRight size={16} aria-hidden="true" /></a>}
+              {project.github && project.liveDemo && <a className="projects-demo" href={project.liveDemo} target="_blank" rel="noopener noreferrer">Live demo<span className="sr-only"> of {project.title}</span><ArrowUpRight size={16} aria-hidden="true" /></a>}
+              <button className="projects-details-toggle" type="button" aria-expanded={detailsOpen} aria-controls={detailsId} onClick={() => setOpenProjectDetails((open) => ({ ...open, [project.number]: !open[project.number] }))}>Engineering details<span className="sr-only">: {project.title}</span><ChevronDown size={16} aria-hidden="true" /></button>
+            </div>
+            <div className="projects-case-study" id={detailsId} hidden={!detailsOpen}>
+              <p>{project.description}</p>
+              {project.note && <p><strong>{project.note.label}</strong>{project.note.text}</p>}
+              <p><strong>Problem</strong>{project.problem}</p>
+              <p><strong>Approach</strong>{project.approach}</p>
+              <p><strong>Engineering decisions</strong>{project.decisions}</p>
+              <p><strong>Outcome / current status</strong>{project.outcome}</p>
+            </div>
+          </div>
+        </article>;
+      })}</div>
+    </section>,
     experience: <section key="experience" className="section-shell split-section experience-section" id="experience" data-reveal="up"><div className="section-label"><span>03</span> Experience</div><div className="experience-content"><h2>A timeline of<br /><span>technical support.</span></h2><div className="timeline"><div className="timeline-progress" data-reveal="line" aria-hidden="true" /><div className="timeline-items">{experience.map((item, index) => <article className="timeline-item" data-reveal="up" data-reveal-delay={150 + index * 80} key={item.title}><div className="timeline-marker" aria-hidden="true" /><div><small>{item.date}</small><h3>{item.title}</h3><p className="timeline-company">{item.company}</p><ul>{item.responsibilities.map((line) => <li key={line}>{line}</li>)}</ul><div className="tag-list">{item.tools.map((tool) => <span key={tool}>{tool}</span>)}</div></div></article>)}</div></div></div></section>,
     thinking: <section key="thinking" className="section-shell split-section thinking-section" id="how-i-think" aria-labelledby="how-i-think-title" data-reveal="up"><div className="section-label"><span>04</span> How I Think</div><div className="thinking-content"><h2 id="how-i-think-title">How I approach<br /><span>problems.</span></h2><ol className="thinking-list">{thinkingPrinciples.map((principle) => <li className="thinking-item" key={principle.number}><span className="thinking-number" aria-hidden="true">{principle.number}</span><div><h3>{principle.title}</h3><p>{principle.body}</p><p className="thinking-source"><b>{principle.source}</b> {principle.detail}</p></div></li>)}</ol></div></section>,
     systemMap: <section key="systemMap" className="section-shell split-section map-section" id="system-map" aria-labelledby="system-map-title" data-reveal="up"><div className="section-label"><span>05</span> System Map</div><div className="map-content"><h2 id="system-map-title">How it all<br /><span>connects.</span></h2><p className="map-intro">How the tools I use connect to the things I&apos;ve built.</p><SystemMap /></div></section>,
