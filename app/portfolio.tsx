@@ -18,6 +18,16 @@ const defaultSectionOrder = ["about", "projects", "experience", "skills", "leetc
 
 
 const projectHighlights = {
+  StoryMotion: {
+    category: "INTERACTIVE MEDIA",
+    summary: "Webcam-driven storytelling with gesture-triggered character actions.",
+    points: ["Built across 3 interactive stories with 5 gesture triggers.", "Used MediaPipe pose estimates and XState scene transitions.", "Validated story behavior with 267 automated tests across 37 files."],
+  },
+  PausePoint: {
+    category: "PRIVACY / WEB",
+    summary: "On-device scam awareness that helps people pause and verify suspicious messages.",
+    points: ["Normalized Unicode while preserving evidence in the original text.", "Messages never leave the browser.", "Flagged 16/16 initial scam examples with no legitimate examples flagged in the expanded set."],
+  },
   OperatorLoop: {
     category: "AI / DATA",
     summary: "Human-in-the-loop decision support for manufacturing sensor data.",
@@ -40,6 +50,10 @@ function ProjectVisual({ project }: { project: Project }) {
     <span className="project-number" aria-hidden="true">{project.number}</span>
     <Image src="/images/projects/operatorloop-vibration.png" alt="OperatorLoop chart: vibration across 160 synthetic manufacturing runs, with vibration anomalies marked above the 1.2 g threshold." width={1400} height={636} sizes="(max-width: 900px) 100vw, 640px" />
     <figcaption><span aria-hidden="true">{project.number} · </span>Vibration plot from the OperatorLoop repo · 160 synthetic runs</figcaption>
+  </figure>;
+  if (project.visual === "storymotion" || project.visual === "pausepoint") return <figure className={`project-visual visual-${project.visual} project-figure`}>
+    <Image src={`/images/projects/${project.visual}-showcase.png`} alt={`${project.title} project showcase`} width={1200} height={800} sizes="(max-width: 900px) 100vw, 640px" />
+    <figcaption><span aria-hidden="true">{project.number} · </span>{project.title} project showcase</figcaption>
   </figure>;
   return <div className={`project-visual visual-${project.visual}`} aria-hidden="true">
     <span className="project-number">{project.number}</span>
@@ -220,7 +234,7 @@ export default function Portfolio() {
       <div className="about-columns">
         <div className="about-details">
           <p className="about-lead">I&apos;m Raju Kumar Paswan, a Computer Science student at the University of Texas at Arlington, minoring in Data Science. I&apos;m interested in how software works all the way down, from the instructions a processor runs to the applications people use every day.</p>
-          <p>At UTA&apos;s Office of Information Technology, I work as a Student Technical Assistant, supporting classroom and lab technology across hardware, software, and AV systems. Outside of work, I build projects that pull me into new areas, from a decision-support pipeline for manufacturing data to a bare-metal ARM kernel lab. I&apos;m currently looking for Summer 2027 software engineering internships.</p>
+          <p>At UTA&apos;s Office of Information Technology, I work as a Student Technical Assistant, supporting classroom and lab technology across hardware, software, and AV systems. Outside of work, I build projects that pull me into new areas, from a decision-support pipeline for manufacturing data to gesture-driven storytelling and scam-awareness apps. I&apos;m currently looking for Summer 2027 software engineering internships.</p>
           <h3>What I&apos;m studying</h3>
           <ul className="about-pills">{education.coursework.map((item) => <li key={item}>{item}</li>)}</ul>
           <h3>Organizations</h3>
@@ -285,16 +299,20 @@ export default function Portfolio() {
       <h2 className="section-label" id="experience-heading">Experience</h2>
       <div className="experience-roles">{experience.map((item) => {
         const isUta = item.title === "Student Technical Assistant";
+        const isNrcs = item.title === "IT Support Volunteer";
+        const isTriton = item.title === "IT Support Assistant";
         const roleOpen = Boolean(openRoles[item.title]);
-        const extraId = `experience-extra-${isUta ? "uta" : "nrcs"}`;
+        const extraId = `experience-extra-${isUta ? "uta" : isTriton ? "triton" : "nrcs"}`;
         return <article className="experience-role" key={item.title}>
           <div className="experience-logo">{isUta
             ? <Image src="/images/uta-logo.png" alt="UTA logo" width={44} height={44} />
-            : <Image src="/images/nrcs-logo.png" alt="Nepal Red Cross Society logo" width={44} height={44} />}</div>
+            : isNrcs
+              ? <Image src="/images/nrcs-logo.png" alt="Nepal Red Cross Society logo" width={44} height={44} />
+              : <Image src="/images/triton-logo.png" alt="Triton SS & College logo" width={44} height={44} />}</div>
           <div className="experience-role-body">
             <div className="experience-title-row"><h3>{item.title}</h3><p className="experience-date">{item.date}</p></div>
-            <p className="experience-organization">{isUta ? "Office of Information Technology, University of Texas at Arlington · Arlington, TX" : "Nepal Red Cross Society · Nepal"}</p>
-            <p className="experience-summary">{isUta ? "Support classroom and lab technology across hardware, software, and AV systems." : "Provide front-line IT support, workstation setup, website updates, and accessible PDF support."}</p>
+            <p className="experience-organization">{isUta ? "Office of Information Technology, University of Texas at Arlington · Arlington, TX" : isNrcs ? "Nepal Red Cross Society · Nepal" : item.company}</p>
+            <p className="experience-summary">{isUta ? "Support classroom and lab technology across hardware, software, and AV systems." : isNrcs ? "Provide front-line IT support, workstation setup, website updates, and accessible PDF support." : "Supported campus technology across 200+ workstations."}</p>
             <ul className="experience-tools" aria-label="Skills and tools">{item.tools.map((tool) => {
               const ToolIcon = getExperienceIcon(tool);
               return <li key={tool}><ToolIcon size={16} aria-hidden="true" />{tool}</li>;
@@ -321,8 +339,9 @@ export default function Portfolio() {
         return <div className={`skills-group${learning ? " is-learning" : ""}`} key={group.label}>
           <h3>{group.label}{learning && <span className="skills-badge">In progress</span>}</h3>
           <ul className="skills-items">{group.items.map((item) => {
-            const { icon: SkillIcon, color } = getSkillIcon(item);
-            return <li key={item} style={{ "--skill-color": color } as React.CSSProperties}><SkillIcon size={18} aria-hidden="true" />{item}</li>;
+            const skillIcon = getSkillIcon(item);
+            const SkillIcon = skillIcon?.icon;
+            return <li key={item} style={{ "--skill-color": skillIcon?.color } as React.CSSProperties}>{SkillIcon && <SkillIcon size={18} aria-hidden="true" />}{item}</li>;
           })}</ul>
         </div>;
       })}</div>

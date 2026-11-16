@@ -1,9 +1,9 @@
-import { BrainCircuit, ChartLine, Cloud, Database, FileSearch, Tag } from "lucide-react";
+import { BrainCircuit, ChartLine, Cloud, Database, FileSearch, Tag, Terminal } from "lucide-react";
 import type { ComponentType } from "react";
 import {
   SiArm, SiC, SiCss, SiDocker, SiFastapi, SiGit, SiGithubactions, SiGnu, SiHtml5, SiJavascript, SiLangchain,
-  SiLinux, SiMysql, SiNextdotjs, SiOpenjdk, SiPandas, SiPostgresql, SiPython, SiQemu, SiReact, SiRedis,
-  SiScikitlearn, SiSpringboot,
+  SiCplusplus, SiLinux, SiMysql, SiNextdotjs, SiOpenjdk, SiPandas, SiPostgresql, SiPython, SiQemu, SiReact, SiRedis,
+  SiScikitlearn, SiSpringboot, SiTypescript, SiVercel, SiVite,
 } from "react-icons/si";
 import type { SkillName } from "../data/site";
 
@@ -14,10 +14,12 @@ type SkillIcon = { icon: ComponentType<{ size?: number; color?: string; "aria-hi
 // Colors are CSS values (applied through --skill-color in globals.css). Logos too dark to see on the dark theme
 // use a --brand-* token that switches to a lighter shade there.
 const violet = "var(--color-violet)";
-const iconFor: Record<SkillName, SkillIcon> = {
+const iconFor: Partial<Record<SkillName, SkillIcon>> = {
   Python: { icon: SiPython, color: "#3776ab" },
   C: { icon: SiC, color: "var(--brand-c)" },
+  "C++": { icon: SiCplusplus, color: "var(--brand-c)" },
   "ARM Assembly": { icon: SiArm, color: "#0091bd" },
+  TypeScript: { icon: SiTypescript, color: "#3178c6" },
   JavaScript: { icon: SiJavascript, color: "#d4b600" },
   Pandas: { icon: SiPandas, color: "var(--brand-pandas)" },
   "scikit-learn": { icon: SiScikitlearn, color: "#f7931e" },
@@ -45,9 +47,14 @@ const iconFor: Record<SkillName, SkillIcon> = {
   ChromaDB: { icon: Database, color: violet },
   Redis: { icon: SiRedis, color: "#dc382d" },
   "GitHub Actions": { icon: SiGithubactions, color: "#2088ff" },
+  "Shell Scripting": { icon: Terminal, color: violet },
+  Vite: { icon: SiVite, color: "#646cff" },
+  Vercel: { icon: SiVercel, color: "var(--brand-nextjs)" },
+  MediaPipe: { icon: BrainCircuit, color: violet },
   "Cloud Systems": { icon: Cloud, color: violet },
 };
 
-export function getSkillIcon(skill: string): SkillIcon {
+export function getSkillIcon(skill: string): SkillIcon | null {
+  if (skill === "XState") return null;
   return iconFor[skill as SkillName] ?? { icon: Tag, color: violet };
 }
